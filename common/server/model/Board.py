@@ -39,6 +39,4 @@ class Board(object):
             for c in s: c.owner=owner
     def tick(self):
         for x,y in self.cells:
-            c=self.cells[x,y]
-            c.update()
-            
+            self.cells[x,y].update()
