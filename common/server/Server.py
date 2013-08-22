@@ -22,7 +22,8 @@ class Server(metaclass=ABCMeta):
         self.state = Server.STATE.STARTING
     
     def run(self):
-        pass
+        self.state=Server.STATE.RUNNING
+        # blah
     
     def game_loop(self):
         pass
