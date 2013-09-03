@@ -54,6 +54,10 @@ class Cell(object):
                 self.last_attacker=None
             else:
                 self.last_attacker=self.last_targeter=other
+    def toBinary(self) -> bytearray:
+        b = bytearray()
+        
+        return b
                 
 class SquareCell(Cell):
     default_range=1.5

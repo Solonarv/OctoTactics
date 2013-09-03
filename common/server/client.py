@@ -5,12 +5,11 @@ Created on 19.08.2013
 '''
 
 class ClientConnection(object):
+    """
+    Used server-side to represent a connection to a client
+    """
     
     def __init__(self, stream):
         self.stream = stream
         stream.setblocking(False)
-    def _message(self, msg):
-        self.stream.send(msg)
-    def sendcellinfo(self, cell):
-        msg=bytearray()
         

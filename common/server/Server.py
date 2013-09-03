@@ -12,7 +12,7 @@ class Server(metaclass=ABCMeta):
     ABC of server
     '''
     
-    STATE = Enum("UNLOADED", "STARTING", "WAITING", "RUNNING", "STOPPING", "STOPPED", "ERRORED")
+    STATE = Enum(("UNLOADED", "STARTING", "WAITING", "RUNNING", "STOPPING", "STOPPED", "ERRORED",))
     
     def __init__(self, name):
         self.state = Server.STATE.UNLOADED

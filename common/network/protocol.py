@@ -3,54 +3,20 @@ Created on 22.08.2013
 
 @author: Solonarv
 '''
-from server.model.Cell import Cell
-
-side=object()
-side.serverSide=True
-side.clientSide=True
-
-try:
-    import server.dedicated.ServerMP as foo
-    del foo
-except ImportError:
-    side.serverSide=False
-
-try:
-    import client.model as bar
-    del bar
-except ImportError:
-    side.clientSide=False
-
+from server.model.cells import Cell
 from abc import ABCMeta, abstractmethod, abstractclassmethod
-import pickle
 
 class Packet(object, metaclass=ABCMeta):
-    def __init__(self):
-        pass
-    
-    def encodeval(self):
-        return pickle.dumps(self.val)
+    def __init__(self, tp): self.tp = tp
     @abstractmethod
-    def encode(self):
-        pass
-    
-    @classmethod
-    def decodeval(cls, data):
-        return pickle.loads(data)
-    @abstractclassmethod
-    def decode(cls, data):
-        pass
-
-class ServerToClient(Packet):
-    _allowed_server_types=()
-    def __new__(cls, data, *args, **kwargs):
-        if((side.serverSide and isinstance(data, cls._allowed_server_types))
-           or (side.clientSide and isinstance(data, (bytes,bytearray)))):
-            return Packet.__new__(cls, data, *args, **kwargs)
+    def toBinary(self) -> bytearray:
+        return bytearray((self.tp,))
         
 
-class Packet001Cell(ServerToClient, Packet):
-    _allowed_server_types = (Cell,)
+class Packet001Cell(Packet):
+    def __init__(self, cell : Cell):
+        self.cell = cell
     @abstractmethod
-    def encode(self):
-        Packet.encode(self)
+    def toBinary(self) -> bytearray:
+        b = Packet.toBinary(self)
+        b.extend((self.data.pos[0], self.data.pos[1]))
