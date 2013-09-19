@@ -7,6 +7,16 @@ Created on 31.07.2013
 from abc import ABCMeta, abstractmethod
 from util import Enum
 
+class ClientConnection(object):
+    """
+    Used server-side to represent a connection to a client
+    """
+    
+    def __init__(self, stream):
+        self.stream = stream
+        stream.setblocking(False)
+        
+
 class Server(metaclass=ABCMeta):
     '''
     ABC of server

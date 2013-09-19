@@ -3,7 +3,7 @@ Created on 31.07.2013
 
 @author: Solonarv
 '''
-from server.Server import Server
+from server.server import Server
 from server.dedicated.network.listen import ThreadNetworkListener
 from threading import Lock
 

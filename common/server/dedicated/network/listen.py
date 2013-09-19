@@ -6,7 +6,7 @@ Created on 31.07.2013
 
 import socketserver
 from threading import Thread
-from server.client import ClientConnection
+from server.server import ClientConnection
 
 class ThreadNetworkListener(Thread):
     def __init__(self, gameserver, port):

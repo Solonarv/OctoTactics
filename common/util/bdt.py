@@ -9,6 +9,7 @@ Name is BDT = Binary Data Tags
 
 import gzip
 from util import Enum
+json = None
 
 data_types = Enum(("END", "BYTE", "SHORT", "INT", "LONG", "STRING", "LIST", "COMPOUND",))
 

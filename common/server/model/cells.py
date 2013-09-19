@@ -4,7 +4,7 @@ Created on 07.07.2013
 @author: Solonarv
 '''
 
-from util import AbstractGeometry
+from util import geometry
 
 class Cell(object):
     """Cell base class. Is refined into SquareCell and OctogonCell."""
@@ -76,7 +76,7 @@ class SquareCell(Cell):
             raw=self.energy * .014 # 1.4 %e/tick = 25 %e/sec
         else:
             return 0
-        return AbstractGeometry.dampen_transfer(raw,self.distSq(tar))
+        return geometry.dampen_transfer(raw,self.distSq(tar))
 
 class OctogonCell(Cell):
     default_range=1.5
@@ -101,4 +101,4 @@ class OctogonCell(Cell):
                 0)
         else:
             return 0
-        return AbstractGeometry.dampen_transfer(raw,self.distSq(tar))
+        return geometry.dampen_transfer(raw,self.distSq(tar))
