@@ -4,7 +4,7 @@ Created on 31.07.2013
 @author: Solonarv
 '''
 
-from server.Server import Server
+from server.server import Server
 
 class ServerSP(Server):
 

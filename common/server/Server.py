@@ -6,6 +6,8 @@ Created on 31.07.2013
 
 from abc import ABCMeta, abstractmethod
 from util import Enum
+from util.events import EventBus
+from server.events import *
 
 class ClientConnection(object):
     """
@@ -27,20 +29,12 @@ class Server(metaclass=ABCMeta):
     def __init__(self, name):
         self.state = Server.STATE.UNLOADED
         self.name = name
+        self.EVENT_BUS = EventBus()
     
-    def start_server(self):
-        self.state = Server.STATE.STARTING
-    
-    def run(self):
-        self.state=Server.STATE.RUNNING
-        # blah
-    
-    def game_loop(self):
-        pass
+    def setstate(self, state):
+        if self.EVENT_BUS.post(ServerStateEvent(self,state)):
+            self.state = state
     
     def game_tick(self):
-        pass
-    
-    @abstractmethod
-    def sendUpdates(self):
-        pass
+        self.EVENT_BUS.post(ServerTickEvent(self))
+        self.EVENT_BUS.post(ServerPostTickEvent(self))
