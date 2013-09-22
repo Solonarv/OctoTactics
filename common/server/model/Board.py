@@ -8,6 +8,8 @@ from random import Random
 from itertools import product
 from server.model import cells
 from util import logger
+from util.events import EventBus
+from server.model.events import CellUpdateEvent
 
 class Board(object):
     def __init__(self, w, h):
@@ -15,28 +17,17 @@ class Board(object):
         self.w=w
         self.h=h
         self.rng=Random()
-    def initialize(self,map_otn):
-        self.populate()
-        self.distr_owners(map_otn)
-    def populate(self):
-        """Fill the board with unowned (neutral) cells."""
-        for x,y in product(range(self.w), range(self.h)):
-            if (x+y)%2==0: # x,y both even or both odd
-                self.cells[x,y]=cells.OctogonCell(x,y,None)
-            else:
-                self.cells[x,y]=cells.SquareCell(x,y,None)
-    def distr_owners(self,map_otn):
-        """Randomly distribute cells to owners"""
-        if(sum(map_otn.items())>self.x*self.y):
-            logger.warning("Board.distr_owners called, \
-            but the board is too small to allocate all the cells!")
-        cells=set(self.cells)
-        otc={}
-        for owner in map_otn:
-            s=self.rng.sample(cells, map_otn[owner])
-            cells.difference_update(s)
-            otc[owner]=s
-            for c in s: c.owner=owner
-    def tick(self):
-        for x,y in self.cells:
-            self.cells[x,y].update()
+        self.EVENT_BUS = EventBus()
+    
+    def register_handlers(self, server):
+        server.EVENT_BUS.register(self.onTick)
+    
+    def onTick(self, event):
+        for c in product(range(0, self.w), range(0, self.h)):
+            self.cells[c].update(CellUpdateEvent(self))
+        return True
+    
+    def fill(self):
+        for x,y in product(range(0, self.w), range(0, self.h)):
+            self.cells[x,y] = (cells.SquareCell(x, y, None) if (x+y) % 2
+                               else cells.OctogonCell(x, y, None))

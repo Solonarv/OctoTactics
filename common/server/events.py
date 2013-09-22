@@ -23,3 +23,9 @@ class ServerStateEvent(ServerEvent):
 class ServerTickEvent(ServerEvent): pass
 
 class ServerPostTickEvent(ServerTickEvent): pass
+
+class ServerGameStartEvent(ServerEvent):
+    def __init__(self, server, bw, bh):
+        super().__init__(server)
+        self.bw = bw
+        self.bh = bh

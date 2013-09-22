@@ -35,6 +35,11 @@ class EventBus:
         return all([listener(event)
                     for listener, types in self._listeners
                     if isinstance(event, types)])
+    
+    def listener(self, types):
+        def dec(handler):
+            self.register(handler, types)
+            return handler
 
 class ForkingEventBus(EventBus):
     """
