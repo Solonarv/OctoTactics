@@ -27,6 +27,7 @@ Global win conditions (exhaustive list):
 
  - If no enemy cells remain
  - If all their opponents lose
+
 Specific win conditions (_non_exhaustive list):
 
  - If they have conquered a certain number of cells
@@ -110,4 +111,7 @@ you communicating the suggestion to us.
 If you have any legal questions not answered on this page, do not do it and ask us. 
 Basically, don't mess with us and well leave you alone.
 
-~ Nicolas Stamm (Solonarv), anon$littleboy, anon$Kougloff
+### TL;DR
+Don't steal our stuff, don't pretend we endorse your stuff. Otherwise, do whatever you want.
+
+~ Nicolas Stamm (Solonarv), DruideRappeur, anon$littleboy
