@@ -5,7 +5,7 @@ CellWars
 A RTS without any units, or formal bases.
 
 ## Game environment
-The is played on a board divided into octogonal and square cells, which have different stats.
+The game is played on a board divided into octogonal and square cells, which have different stats.
 
 ## Game mechanics
 Each cell has a certain amount of energy and generates some over time. Cells may transfer this energy to others in range.
