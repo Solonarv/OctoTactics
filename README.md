@@ -1,4 +1,4 @@
-CellWars
+Octo Tactics
 ========
 
 ## Short description
@@ -69,12 +69,12 @@ roughly equal to the average size of the player teams.
 ## Modding & Source code
 The game was written from the ground up to support modding. Most behaviors are implemented through event buses, which means
 that it is very easy to create mods that hook into that event system to accomplish various reactive tasks.
-Cell Wars also features an extensive API, which allows modders to easily add features such as game modes or cell upgrades.
+Octo Tactics also features an extensive API, which allows modders to easily add features such as game modes or cell upgrades.
 
 ## Terms of Use
 
 ### What you buy
-When you purchase Cell Wars, you do so as is. This includes any bugs, missing features or other shortcomings.
+When you purchase Octo Tactics, you do so as is. This includes any bugs, missing features or other shortcomings.
 Purchasing gives you a code allowing you to download any version of the game (including future ones),
 either as full source code or as optimized python files (.pyo). You may use this link to download the game
 as often as you like\*, and install and use it on as many machines as you like. This code cannot be linked
