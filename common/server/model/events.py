@@ -23,3 +23,13 @@ class PreTransferEvent(EnergyTransferEventBase): pass
 class CellTakeDamageEvent(EnergyTransferEventBase): pass
 
 class CellTakeHealEvent(EnergyTransferEventBase): pass
+
+class CellTakeoverEvent(BoardEvent):
+    def __init__(self, board, subject, source, prevowner, newowner):
+        super().__init__(board)
+        self.subject = subject
+        self.source = source
+        self.prevowner = prevowner
+        self.newowner = newowner
+    def ishostile(self):
+        return self.prevowner is not None and not self.subject.alliedto(self.newowner)

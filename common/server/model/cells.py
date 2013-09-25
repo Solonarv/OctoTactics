@@ -4,7 +4,8 @@ Created on 07.07.2013
 @author: Solonarv
 '''
 
-from server.model.events import PreTransferEvent, CellTakeDamageEvent, CellTakeHealEvent
+from server.model.events import PreTransferEvent, CellTakeDamageEvent, CellTakeHealEvent,\
+    CellTakeoverEvent
 
 class Cell(object):
     """Cell base class. Is refined into SquareCell and OctogonCell."""
@@ -18,6 +19,7 @@ class Cell(object):
         self.last_assist=None # The last cell to help this one
         self.last_target=None # The last cell this cell attacked/helped
         self.last_targeter=None # The last cell that transferred energy to this one
+        self.transfertimer = 0
     
     def alliedto(self,other):
         return self.owner==other.owner
@@ -25,7 +27,11 @@ class Cell(object):
     def update(self, event):
         """Called every game tick, on every single cell."""
         self.generate_energy(event)
-        self.transfer_energy(event)
+        if self.transfertimer >= self.maxtransfertimer:
+            self.transfertimer = 0
+            self.transfer_energy(event)
+        else:
+            self.transfertimer += 1
     
     def transfer_energy(self, cellupdate):
         for tar in self.targets:
@@ -48,56 +54,64 @@ class Cell(object):
         elif board.EVENT_BUS.post(CellTakeDamageEvent(board, other, self, delta)):
             self.energy-=delta
             if(self.energy<0):
-                self.owner=self.last_attacker.owner
-                self.last_assist=self.last_targeter=other
-                self.last_attacker=None
+                cto_event = CellTakeoverEvent(board, self, other, self.owner, other.owner)
+                if board.EVENT_BUS.post(cto_event):
+                    self.owner = cto_event.newowner
+                    self.last_assist = self.last_targeter = other
+                    self.last_attacker = None
             else:
                 self.last_attacker=self.last_targeter=other
+        
                 
 class SquareCell(Cell):
-    default_range=1.5
-    max_energy=80
-    max_contacts=1
+    defaultrange=1.5
+    maxenergy=80
+    maxcontacts=1
+    maxtransfertimer = 20
     
     def __init__(self,x,y,owner):
         super().__init__(x,y,owner)
         self.range=SquareCell.default_range
     
     def generate_energy(self):
-        self.energy+=.25 # .25 e/tick = 5 e/sec
+        if self.energy < self.maxenergy:
+            self.energy+=.25 # .25 e/tick = 5 e/sec
     
     # BETA -- currently not enough information to balance
     def energy_to_transfer(self,tar):
         if isinstance(tar, SquareCell):
-            return self.energy * .011 # 1.1 %e/tick = 20 %e/sec
+            return self.energy * .2 # 20 %e/20sec
         elif isinstance(tar, OctogonCell):
-            return self.energy * .014 # 1.4 %e/tick = 25 %e/sec
+            return self.energy * .25 # 25 %e/20sec
         else:
             return 0
 
 class OctogonCell(Cell):
-    default_range=1.5
-    max_energy=200
-    max_contacts=3
+    defaultrange=1.5
+    maxenergy=200
+    maxcontacts=3
+    maxtransfertimer = 20
     
     def __init__(self,x,y,owner):
         super().__init__(x,y,owner)
         self.range=SquareCell.default_range
     
     def generate_energy(self):
-        self.energy+=.1 # .1e/tick = 2 e/sec
+        if self.energy < self.maxenergy:
+            self.energy+=.1 # .1e/tick = 2 e/sec
     
+    # BETA -- currently not enough information to balance
     def energy_to_transfer(self,tar):
         nTars=len(self.targets)
         if isinstance(tar, SquareCell):
-            return (self.energy * .0053 if nTars==1 else # .53 %e/tick = 10 %e/sec
-                self.energy * .0039 if nTars==2 else # .39 %e/tick = 7.5 %e/sec
-                self.energy * .0034 if nTars==3 else # .34 %e/tick = 6.66 %e/sec
+            return (self.energy * .1 if nTars==1 else # 10 %e/20sec
+                self.energy * .075 if nTars==2 else # 7.5 %e/20sec
+                self.energy * .0666 if nTars==3 else # 6.66 %e/20sec
                 0)
         elif isinstance(tar, OctogonCell):
-            return (self.energy * .0081 if nTars==1 else # .81 &e/tick = 15 %e/sec
-                self.energy * .0053 if nTars==2 else # .53 %e/tick = 10 %e/sec
-                self.energy * .0043 if nTars==3 else # .43 %e/tick = 8.33 %e/sec
+            return (self.energy * .15 if nTars==1 else # 15 %e/20sec
+                self.energy * .1 if nTars==2 else # 10 %e/20sec
+                self.energy * .0833 if nTars==3 else # 8.33 %e/20sec
                 0)
         else:
             return 0
