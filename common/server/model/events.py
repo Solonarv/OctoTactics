@@ -24,7 +24,7 @@ class CellTakeDamageEvent(EnergyTransferEventBase): pass
 
 class CellTakeHealEvent(EnergyTransferEventBase): pass
 
-class CellTakeoverEvent(BoardEvent):
+class CellTakeOverEventBase(BoardEvent):
     def __init__(self, board, subject, source, prevowner, newowner):
         super().__init__(board)
         self.subject = subject
@@ -33,3 +33,13 @@ class CellTakeoverEvent(BoardEvent):
         self.newowner = newowner
     def ishostile(self):
         return self.prevowner is not None and not self.subject.alliedto(self.newowner)
+
+class PreCellTakeOverEvent(CellTakeOverEventBase): pass
+
+class PostCellTakeOverEvent(CellTakeOverEventBase):
+    @classmethod
+    def frompre(cls, pre):
+        """
+        Copy-construct this event from a PreCellTakeOverEvent
+        """
+        return cls(pre.board, pre.subject, pre.source, pre.prevowner, pre.newowner)
