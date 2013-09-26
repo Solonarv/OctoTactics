@@ -8,7 +8,6 @@ from itertools import product
 from random import Random
 from server.model import cells
 from server.model.events import CellUpdateEvent
-from util import logger
 from util.events import EventBus
 
 class Board(object):

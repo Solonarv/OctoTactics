@@ -24,6 +24,6 @@ class ThreadNetworkListener(Thread):
 def ServerConnectRequestHandler(thread):
     class result(socketserver.BaseRequestHandler):
         def handle(self):
-            thread.gameserver.add_client(ClientConnection(self.request))
+            thread.gameserver.add_client(self.request)
     return result
         

@@ -29,3 +29,11 @@ class ServerGameStartEvent(ServerEvent):
         super().__init__(server)
         self.bw = bw
         self.bh = bh
+
+class ClientConnectEventBase(ServerEvent):
+    def __init__(self, server, stream):
+        self.server = server
+        self.stream = stream
+
+class PreClientConnectEvent(ServerEvent): pass
+class PostClientConnectEvent(ServerEvent): pass
