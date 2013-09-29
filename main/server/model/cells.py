@@ -5,10 +5,12 @@ Created on 07.07.2013
 '''
 
 from server.model.events import PreTransferEvent, CellTakeDamageEvent, CellTakeHealEvent,\
-    CellTakeoverEvent
+    PreCellTakeOverEvent, PostCellTakeOverEvent
 
 class Cell(object):
     """Cell base class. Is refined into SquareCell and OctogonCell."""
+    nextUID = 0
+    tpid = 0
     def __init__(self,x,y,owner):
         self.pos=(x,y) # The cell's position on the board
         self.owner=owner # Who owns the cell
@@ -20,6 +22,8 @@ class Cell(object):
         self.last_target=None # The last cell this cell attacked/helped
         self.last_targeter=None # The last cell that transferred energy to this one
         self.transfertimer = 0
+        self.uid = self.nextUID
+        self.nextUID+=1
     
     def alliedto(self,other):
         return self.owner==other.owner
@@ -54,11 +58,12 @@ class Cell(object):
         elif board.EVENT_BUS.post(CellTakeDamageEvent(board, other, self, delta)):
             self.energy-=delta
             if(self.energy<0):
-                cto_event = CellTakeoverEvent(board, self, other, self.owner, other.owner)
+                cto_event = PreCellTakeOverEvent(board, self, other, self.owner, other.owner)
                 if board.EVENT_BUS.post(cto_event):
                     self.owner = cto_event.newowner
                     self.last_assist = self.last_targeter = other
                     self.last_attacker = None
+                board.EVENT_BUS.post(PostCellTakeOverEvent.frompre(cto_event))
             else:
                 self.last_attacker=self.last_targeter=other
         
@@ -68,6 +73,7 @@ class SquareCell(Cell):
     maxenergy=80
     maxcontacts=1
     maxtransfertimer = 20
+    tpid = 1
     
     def __init__(self,x,y,owner):
         super().__init__(x,y,owner)
@@ -91,6 +97,7 @@ class OctogonCell(Cell):
     maxenergy=200
     maxcontacts=3
     maxtransfertimer = 20
+    tpid = 2
     
     def __init__(self,x,y,owner):
         super().__init__(x,y,owner)
