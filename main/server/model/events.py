@@ -43,3 +43,20 @@ class PostCellTakeOverEvent(CellTakeOverEventBase):
         Copy-construct this event from a PreCellTakeOverEvent
         """
         return cls(pre.board, pre.subject, pre.source, pre.prevowner, pre.newowner)
+
+class CellRetargetEventBase(BoardEvent):
+    def __init__(self, board, subject, prevtargets, newtargets):
+        super().__init__(board)
+        self.subject = subject
+        self.newtargets = newtargets
+        self.prevtargets = prevtargets
+
+class PreCellRetargetEvent(CellRetargetEventBase): pass
+
+class PostCellRetargetEvent(CellRetargetEventBase):
+    @classmethod
+    def frompre(cls, pre):
+        """
+        Copy-construct this event from a PreCellRetargetEvent
+        """
+        return cls(pre.board, pre.subject, pre.prevtargets, pre.newtargets)
