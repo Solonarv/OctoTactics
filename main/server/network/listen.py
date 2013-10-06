@@ -17,13 +17,10 @@ class ThreadNetworkListener(Thread):
     
     def run(self):
         if self.tcpserver == None:
-            self.tcpserver=socketserver.TCPServer(('127.0.0.1', self.port), ServerConnectRequestHandler(self))
+            self.tcpserver=socketserver.TCPServer(('127.0.0.1', self.port), ServerConnectRequestHandler)
             self.tcpserver.parent_thread = self
         self.tcpserver.serve_forever()
 
-def ServerConnectRequestHandler(thread):
-    class result(socketserver.BaseRequestHandler):
-        def handle(self):
-            thread.gameserver.add_client(self.request)
-    return result
-        
+class ServerConnectRequestHandler(socketserver.BaseRequestHandler):
+    def handle(self):
+        self.server.parent_thread.gameserver.add_client(self.request)

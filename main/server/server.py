@@ -10,15 +10,7 @@ from util.events import EventBus
 from server.events import *
 from threading import Lock
 from server.network.listen import ThreadNetworkListener
-
-class ClientConnection(object):
-    """
-    Used server-side to represent a connection to a client
-    """
-    
-    def __init__(self, stream):
-        self.stream = stream
-        stream.setblocking(False)
+from server.network.persist import ClientList
         
 
 class Server(metaclass=ABCMeta):
@@ -28,8 +20,7 @@ class Server(metaclass=ABCMeta):
         self.state = Server.STATE.UNLOADED
         self.name = name
         self.EVENT_BUS = EventBus()
-        self.connected_clients=[]
-        self.clientlist_lock=Lock()
+        self.clients = ClientList()
         self.network_listener = ThreadNetworkListener(self, port)
     
     def setstate(self, state):
@@ -39,7 +30,3 @@ class Server(metaclass=ABCMeta):
     def game_tick(self):
         self.EVENT_BUS.post(ServerTickEvent(self))
         self.EVENT_BUS.post(ServerPostTickEvent(self))
-        
-    def add_client(self, conn):
-        with self.clientlist_lock:
-            self.connected_clients.append(conn)
