@@ -11,6 +11,7 @@ from server.events import *
 from threading import Lock
 from server.network.listen import ThreadNetworkListener
 from server.network.persist import ClientList
+from server.runners import JoiningServerRunner
         
 
 class Server(metaclass=ABCMeta):
@@ -21,7 +22,8 @@ class Server(metaclass=ABCMeta):
         self.name = name
         self.EVENT_BUS = EventBus()
         self.clients = ClientList()
-        self.network_listener = ThreadNetworkListener(self, port)
+        self.port = port
+        self.runner = JoiningServerRunner()
     
     def setstate(self, state):
         if self.EVENT_BUS.post(ServerStateEvent(self,state)):

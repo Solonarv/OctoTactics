@@ -5,17 +5,25 @@ Created on 05.10.2013
 '''
 
 from struct import Struct
+from hashlib import md5
+from server.network.listen import ClientJoinedEvent
 
 class ClientList:
     """
     Holds a list of all clients a server is connected to, as well
     as some methods to interact with that set of clients.
     """
-    def __init__(self):
+    def __init__(self, server):
         self.clients = []
+        self.server = server
     
     def addclient(self, tcp_stream, addr):
-        self.clients.append(ClientRepr(tcp_stream, addr))
+        client = ClientRepr(tcp_stream, addr)
+        self.clients.append(client)
+        self.server.EVENT_BUS.post(ClientJoinedEvent(self.server, client))
+    
+    def broadcast(self, msg):
+        for cl in self.clients: cl.sendmsg(msg)
 
 class ClientRepr:
     """
@@ -23,6 +31,10 @@ class ClientRepr:
     """
     
     struct_ClientHello = Struct('>?32s')
+    # Is the client an AI?
+    # Client's self.given name
+    
+    nextsalt = 0
     
     def __init__(self, tcp_stream, addr):
         self.stream = tcp_stream
@@ -35,6 +47,9 @@ class ClientRepr:
         ai, name = self.struct_ClientHello.unpack(data)
         self.isAI = ai
         self.clientname = str(name, encoding = "utf8").strip("\x00")
+        # Compute a unique ID for the client based on the name id gave itself and a counter
+        self.cluid = int.from_bytes((md5().update(name + self.nextsalt.to_bytes(4, 'big')).digest())[:8], 'big')
+        self.nextsalt+=1
     
     def sendmsg(self, msg):
-        pass
+        self.stream.write(msg)

@@ -6,7 +6,7 @@ Created on 31.07.2013
 
 import socketserver
 from threading import Thread
-from server.server import ClientConnection
+from util.events import Event
 
 class ThreadNetworkListener(Thread):
     def __init__(self, gameserver, port):
@@ -23,4 +23,4 @@ class ThreadNetworkListener(Thread):
 
 class ServerConnectRequestHandler(socketserver.BaseRequestHandler):
     def handle(self):
-        self.server.parent_thread.gameserver.add_client(self.request)
+        self.server.parent_thread.gameserver.clients.add_client(self.request)
