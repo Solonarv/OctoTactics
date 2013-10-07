@@ -4,7 +4,6 @@ Created on 31.07.2013
 @author: Solonarv
 '''
 
-from abc import ABCMeta, abstractmethod
 from util import Enum
 from util.events import EventBus
 from server.events import *
@@ -14,7 +13,7 @@ from server.network.persist import ClientList
 from server.runners import JoiningServerRunner
         
 
-class Server(metaclass=ABCMeta):
+class Server:
     STATE = Enum(("UNLOADED", "STARTING", "WAITING", "RUNNING", "STOPPING", "STOPPED", "ERRORED",))
     
     def __init__(self, name, port):
