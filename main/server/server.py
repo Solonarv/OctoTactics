@@ -19,9 +19,9 @@ class Server:
     def __init__(self, name, port):
         self.state = Server.STATE.UNLOADED
         self.name = name
+        self.port = port
         self.EVENT_BUS = EventBus()
         self.clients = ClientList()
-        self.port = port
         self.runner = JoiningServerRunner()
     
     def setstate(self, state):
