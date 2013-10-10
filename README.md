@@ -2,7 +2,7 @@ Octo Tactics
 ========
 
 ## Short description
-A RTS without any units, or formal bases.
+A real-time [abstract strategy game](http://en.wikipedia.org/wiki/Abstract_strategy_games) with no moving pieces.
 
 ## Game environment
 The game is played on a board divided into octogonal and square cells, which have different stats.
