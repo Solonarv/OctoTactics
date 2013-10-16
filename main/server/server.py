@@ -10,7 +10,7 @@ from server.events import *
 from threading import Lock
 from server.network.listen import ThreadNetworkListener
 from server.network.persist import ClientList
-from server.runners import JoiningServerRunner
+from server.runners import PregameServerRunner
         
 
 class Server:
@@ -22,7 +22,7 @@ class Server:
         self.port = port
         self.EVENT_BUS = EventBus()
         self.clients = ClientList()
-        self.runner = JoiningServerRunner()
+        self.runner = PregameServerRunner()
     
     def setstate(self, state):
         if self.EVENT_BUS.post(ServerStateEvent(self,state)):

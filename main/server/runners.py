@@ -16,26 +16,19 @@ class BaseServerRunner(metaclass = ABCMeta):
     @abstractmethod
     def run(self): pass
 
-class JoiningServerRunner(BaseServerRunner):
+class PregameServerRunner(BaseServerRunner):
     """
-    The only phase during which players can join a game
-    
-    Note: maybe merge with PregameLobbyServerRunner?
+    In this phase, players join a game and settings are made, i.e.
+    game mode, optional win conditions, teams etc
     """
-    struct_ClientJoinedBroadcast = Struct(">?Q32s")
-    # Is it an AI?
-    # The client's UID
-    # The client's name (32char string)
     def run(self):
-        self.listener = ThreadNetworkListener(self.server, self.server.port)
-        self.listener.start()
+        self.netlistener = ThreadNetworkListener(self.server, self.server.port)
         self.server.EVENT_BUS.register(self.onClientJoin, ClientJoinedEvent)
+        self.netlistener.start()
     
     def onClientJoin(self, event):
-        self.server.clients.broadcast()
-
-class PregameLobbyServerRunner(BaseServerRunner):
-    """
-    Game mode etc are set here
-    """
-    pass
+        msg = self.struct_ClientJoinedBroadcast.pack(event.client.isAI, event.client.cluid, event.client.clientname)
+        self.server.clients.broadcast(msg)
+    
+    def onClientReady(self, event):
+        self.server.clients.broadcast(self.struct_ClientReadyBroadcast(event.client.cluid))

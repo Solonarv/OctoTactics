@@ -6,7 +6,7 @@ Created on 05.10.2013
 
 from struct import Struct
 from hashlib import md5
-from server.network.listen import ClientJoinedEvent
+from server.network.events import ClientJoinedEvent
 
 class ClientList:
     """
@@ -49,7 +49,7 @@ class ClientRepr:
         self.clientname = str(name, encoding = "utf8").strip("\x00")
         # Compute a unique ID for the client based on the name id gave itself and a counter
         self.cluid = int.from_bytes((md5().update(name + self.nextsalt.to_bytes(4, 'big')).digest())[:8], 'big')
-        self.nextsalt+=1
+        self.nextsalt = (self.nextsalt * self.nextsalt + 23) & 0xFfffFfff
     
     def sendmsg(self, msg):
         self.stream.write(msg)
