@@ -33,6 +33,10 @@ class Cell:
                     target.owner=self.owner
                     target.energy=-target.energy
                 
+    def update(self):
+        self.generate_energy()
+        self.transfer_energy()
+    
     def transfer_amount(self, target):
         pass
 
@@ -75,6 +79,10 @@ class Board:
         self.cells={(x,y): SquareCell(x,y) if (x+y)%2 else OctogonCell(x,y)
                     for x in range(0,width)
                     for y in range(0,height)}
+    
+    def tick(self):
+        for cell in self.cells.values():
+            cell.update()
         
             
                 
