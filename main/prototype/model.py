@@ -6,7 +6,7 @@ Created on 4 nov. 2013
 
 class Cell:
     celltype=""
-    def __init__(self, x, y, owner):
+    def __init__(self, x, y, owner=None):
         self.x=x
         self.y=y
         self.targets=[]
@@ -67,6 +67,15 @@ class SquareCell(Cell):
             return self.energy*.014 # 1.4% of en/tick <=> 25% per second
         else:
             return self.energy*.011 # 1.1% of en/tick <=> 20% per second
+        
+class Board:
+    def __init__(self, width, height):
+        self.width=width
+        self.height=height
+        self.cells={(x,y): SquareCell(x,y) if (x+y)%2 else OctogonCell(x,y)
+                    for x in range(0,width)
+                    for y in range(0,height)}
+        
             
                 
     
