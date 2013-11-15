@@ -8,7 +8,8 @@ from tkinter import *
 from sys import exit
 
 def startgame():
-    pass
+    canvas=Canvas(window, bg="black", )
+    canvas.grid(column=1, row=4)
 
 def settings():
     pass
@@ -19,8 +20,6 @@ def leavegame():
 window=Tk()
 window.title("OctoTactics - Prototype")
 window.geometry("640x480")
-canvas=Canvas(window, bg="black", )
-canvas.grid(column=1, row=4)
 
 presentation=Label(window, text="Welcome on our first game ever: OctoTactics !")
 launchgame=Button(window, text="Play!", command=startgame)
