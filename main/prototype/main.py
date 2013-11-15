@@ -6,6 +6,7 @@ Created on 4 nov. 2013
 
 from tkinter import *
 from sys import exit
+from prototype.model import Board
 
 def startgame():
     pass
