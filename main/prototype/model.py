@@ -84,7 +84,19 @@ class Board:
         for cell in self.cells.values():
             cell.update()
         
+    def draw(self,can):
+        
+        for cell in self.cells.values():
+            if cell.celltype=="octogon":
+                can.create_oval(cell.x*30,cell.y*30,cell.x*30+30,cell.y*30+30,)
+            else:
+                can.create_rectangle(cell.x*30,cell.y*30,cell.x*30+30,cell.y*30+30)
             
+            can.create_text(cell.x*30+15,cell.y*30+15, text=cell.energy, anchor="center")
+                
+                
+                
+                
                 
     
             

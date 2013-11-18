@@ -8,8 +8,16 @@ from tkinter import *
 from sys import exit
 from prototype.model import Board
 
+def update():
+    board.tick()
+    board.draw(canvas)
+    window.after(50, update)
+
 def startgame():
-    pass
+    global board
+    board=Board(15,10)
+    update()
+
 
 def settings():
     pass
@@ -20,8 +28,9 @@ def leavegame():
 window=Tk()
 window.title("OctoTactics - Prototype")
 window.geometry("640x480")
+board=None
 
-canvas=Canvas(window, bg="black", )
+canvas=Canvas(window, bg="white",width=450,height=300 )
 canvas.grid(column=1, row=2, columnspan=3)
 
 
