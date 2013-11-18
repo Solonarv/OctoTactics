@@ -8,6 +8,9 @@ from tkinter import *
 from sys import exit
 from prototype.model import Board
 
+def onclick(event):
+    
+
 def update():
     board.tick()
     board.draw(canvas)
