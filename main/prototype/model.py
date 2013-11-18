@@ -12,6 +12,8 @@ class Cell:
         self.targets=[]
         self.energy=5
         self.owner=owner
+        self.shape=None
+        self.counter=None
     
     def generate_energy(self):
         pass
@@ -39,6 +41,28 @@ class Cell:
     
     def transfer_amount(self, target):
         pass
+    
+    def draw(self,can):
+        if self.shape is None:
+            if self.celltype=="octogon":
+                self.shape=can.create_oval(self.x*30,self.y*30,self.x*30+30,self.y*30+30)
+            else:
+                self.shape=can.create_rectangle(self.x*30,self.y*30,self.x*30+30,self.y*30+30)
+        if self.counter is None:
+            self.counter=can.create_text(self.x*30+15,self.y*30+15, text=int(self.energy), anchor="center")
+        else:
+            can.itemconfig(self.counter,text=int(self.energy))
+
+        for tar,lines in self.targets:
+            if lines is not None:
+                for i,l in enumerate(lines):
+                    rx=0 if i==0 else 20 if i==1 else 10
+                    ry=20 if i==0 else 10
+                    if l is None:
+                        l=can.create_line(self.x*30+rx,self.y+ry,tar.x,tar.y)
+                    else:
+                        can.coords(l,self.x*30+rx,self.y+ry,tar.x,tar.y)
+            
 
 class OctogonCell(Cell):
     celltype="octogon"
@@ -85,14 +109,8 @@ class Board:
             cell.update()
         
     def draw(self,can):
-        
         for cell in self.cells.values():
-            if cell.celltype=="octogon":
-                can.create_oval(cell.x*30,cell.y*30,cell.x*30+30,cell.y*30+30,)
-            else:
-                can.create_rectangle(cell.x*30,cell.y*30,cell.x*30+30,cell.y*30+30)
-            
-            can.create_text(cell.x*30+15,cell.y*30+15, text=cell.energy, anchor="center")
+            cell.draw(can)
                 
                 
                 

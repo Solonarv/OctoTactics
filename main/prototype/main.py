@@ -14,6 +14,7 @@ def update():
     window.after(50, update)
 
 def startgame():
+    launchgame.config(command=0)
     global board
     board=Board(15,10)
     update()
