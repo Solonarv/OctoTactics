@@ -15,6 +15,7 @@ class Cell:
         self.owner=owner
         self.shape=None
         self.counter=None
+        self.tarlinepool=set()
     
     def generate_energy(self):
         pass
@@ -54,20 +55,31 @@ class Cell:
         else:
             can.itemconfig(self.counter,text=int(self.energy))
 
-        for tar,lines in self.targets:
-            if lines is not None:
-                for i,l in enumerate(lines):
-                    rx=0 if i==0 else 20 if i==1 else 10
-                    ry=20 if i==0 else 10
-                    if l is None:
-                        l=can.create_line(self.x*30+rx,self.y+ry,tar.x,tar.y)
-                    else:
-                        can.coords(l,self.x*30+rx,self.y+ry,tar.x,tar.y)
+        self.update_targetlines(can)
+    
+    def update_targetlines(self,can):
+        newpool=set()
+        for tar in self.targets:
+            for i in range(3):
+                ox=(15,22,8)[i]
+                oy=(8,22,22)[i]
+                if len(self.tarlinepool)==0:
+                    l=can.create_line(self.x*30+ox,self.y*30+oy,tar.x*30+15,tar.y*30+15,fill="blue")
+                else:
+                    l=self.tarlinepool.pop()
+                    can.coords(l,self.x*30+ox,self.y*30+oy,tar.x*30+15,tar.y*30+15)
+                newpool.add(l)
+        for l in self.tarlinepool:
+            can.delete(l)
+        self.tarlinepool.intersection_update(newpool)
+                
+            
+                
             
 
 class OctogonCell(Cell):
     celltype="octogon"
-    rangeSq=2
+    rangeSq=2.2
     maxTargets=3
     def generate_energy(self):
         self.energy+=0.025
@@ -108,6 +120,8 @@ class Board:
         self.cells={(x,y): SquareCell(x,y) if (x+y)%2 else OctogonCell(x,y)
                     for x in range(0,width)
                     for y in range(0,height)}
+        self.focus=None
+        self.focusFrame=None
     
     def tick(self):
         for cell in self.cells.values():
@@ -116,6 +130,15 @@ class Board:
     def draw(self,can):
         for cell in self.cells.values():
             cell.draw(can)
+        if self.focus is None:
+            if self.focusFrame is not None:
+                can.coords(self.focusFrame, -1,-1,-1,-1)
+        else:
+            if self.focusFrame is None:
+                self.focusFrame=can.create_oval(self.focus.x*30+2,self.focus.y*30+2,
+                                                self.focus.x*30+28,self.focus.y*30+28,
+                                                outline="red")
+            can.coords(self.focusFrame,self.focus.x*30+2,self.focus.y*30+2,self.focus.x*30+28,self.focus.y*30+28)
                 
                 
                 

@@ -9,26 +9,25 @@ from sys import exit
 from prototype.model import Board
 
 def onclick(event):
-    global focus
     print("canvas onclick called")
-    cx=canvas.canvasx(event.x, 30)/30
-    cy=canvas.canvasy(event.y, 30)/30
+    cx=canvas.canvasx(event.x, 1)//30
+    cy=canvas.canvasy(event.y, 1)//30
     cell=board.cells[cx,cy]
-    if focus is None or (cx-focus.x)**2+(cy-focus.y)**2>=focus.rangeSq:
-        focus=cell
-        print("Set focus to %i,%i" % (cx,cy))
-    elif cell in focus.targets:
-        focus.targets.remove(cell)
-        print("Cell at %i,%i is no longer targeting cell at %i,%i" % (focus.x,focus.y,cx,cy))
-        focus=None
-    elif cell==focus:
-        focus.targets=[]
+    if board.focus is None or (cx-board.focus.x)**2+(cy-board.focus.y)**2>=board.focus.rangeSq:
+        board.focus=cell
+        print("Set board.focus to %i,%i" % (cx,cy))
+    elif cell in board.focus.targets:# TODO broken for some reason
+        board.focus.targets.remove(cell)
+        print("Cell at %i,%i is no longer targeting cell at %i,%i" % (board.focus.x,board.focus.y,cx,cy))
+        board.focus=None
+    elif cell==board.focus:
+        board.focus.targets=[]
         print("Cell at %i,%i is no longer targeting anything" % (cx,cy))
-        focus=None
-    elif len(focus.targets)<focus.maxTargets:
-        focus.targets.append(cell)
-        print("Cell at %i,%i is now targeting cell at %i,%i" % (focus.x,focus.y,cx,cy))
-        focus=None
+        board.focus=None
+    elif len(board.focus.targets)<board.focus.maxTargets:
+        board.focus.targets.append(cell)
+        print("Cell at %i,%i is now targeting cell at %i,%i" % (board.focus.x,board.focus.y,cx,cy))
+        board.focus=None
 
 def update():
     board.tick()
@@ -52,7 +51,6 @@ window=Tk()
 window.title("OctoTactics - Prototype")
 window.geometry("640x480")
 board=None
-focus=None
 
 canvas=Canvas(window, bg="white",width=450,height=300 )
 canvas.grid(column=1, row=2, columnspan=3)
