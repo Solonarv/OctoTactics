@@ -6,6 +6,7 @@ Created on 4 nov. 2013
 
 class Cell:
     celltype=""
+    rangeSq=0
     def __init__(self, x, y, owner=None):
         self.x=x
         self.y=y
@@ -66,6 +67,8 @@ class Cell:
 
 class OctogonCell(Cell):
     celltype="octogon"
+    rangeSq=2
+    maxTargets=3
     def generate_energy(self):
         self.energy+=0.025
     def transfer_amount(self, target):
@@ -87,7 +90,9 @@ class OctogonCell(Cell):
                 return self.energy*.0034 # .34% of en/tick <=> 6.67% per second
             
 class SquareCell(Cell):
+    rangeSq=1.1
     celltype="square"
+    maxTargets=1
     def generate_energy(self):
         self.energy+=0.1
     def transfer_amount(self, target):

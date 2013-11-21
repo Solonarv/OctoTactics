@@ -9,7 +9,26 @@ from sys import exit
 from prototype.model import Board
 
 def onclick(event):
-    
+    global focus
+    print("canvas onclick called")
+    cx=canvas.canvasx(event.x, 30)/30
+    cy=canvas.canvasy(event.y, 30)/30
+    cell=board.cells[cx,cy]
+    if focus is None or (cx-focus.x)**2+(cy-focus.y)**2>=focus.rangeSq:
+        focus=cell
+        print("Set focus to %i,%i" % (cx,cy))
+    elif cell in focus.targets:
+        focus.targets.remove(cell)
+        print("Cell at %i,%i is no longer targeting cell at %i,%i" % (focus.x,focus.y,cx,cy))
+        focus=None
+    elif cell==focus:
+        focus.targets=[]
+        print("Cell at %i,%i is no longer targeting anything" % (cx,cy))
+        focus=None
+    elif len(focus.targets)<focus.maxTargets:
+        focus.targets.append(cell)
+        print("Cell at %i,%i is now targeting cell at %i,%i" % (focus.x,focus.y,cx,cy))
+        focus=None
 
 def update():
     board.tick()
@@ -33,9 +52,11 @@ window=Tk()
 window.title("OctoTactics - Prototype")
 window.geometry("640x480")
 board=None
+focus=None
 
 canvas=Canvas(window, bg="white",width=450,height=300 )
 canvas.grid(column=1, row=2, columnspan=3)
+canvas.bind("<Button-1>",onclick)
 
 
 presentation=Label(window, text="Welcome on our first game ever: OctoTactics !")
