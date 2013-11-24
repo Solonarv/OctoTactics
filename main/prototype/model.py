@@ -15,6 +15,7 @@ class Cell:
         self.owner=owner
         self.shape=None
         self.counter=None
+        self.tarlinepool=set()
     
     def generate_energy(self):
         pass
