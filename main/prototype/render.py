@@ -4,6 +4,8 @@ Created on 22.11.2013
 @author: Solonarv
 '''
 
+import tkinter
+
 class RenderBoard(object):
     def __init__(self, board, canv):
         self.board=board
@@ -11,8 +13,13 @@ class RenderBoard(object):
         self.cellpolys={(x,y): self.cellpoly(x,y) for x,y in board.cells}
         self.cellcounters={(x,y): self.cellcounter(x,y) for x,y in board.cells}
         self.focus=(-1,-1,None,False) # x,y,frame,changed
-        self.tarlinepool=set()
         self.tarlineschanged=False
+        canv.bind('<Button-1>',self.onCanvasClicked)
+    
+    def update(self):
+        self.update_cellcounters()
+        self.update_focusframe()
+        self.update_tarlines()
     
     def cellpoly(self,cx,cy):
         cell=self.board.cells[cx,cy]
@@ -24,15 +31,21 @@ class RenderBoard(object):
                                               cx*50+40,cy*50+60, # Each axis-aligned side is 3/7 the
                                               cx*50+10,cy*50+60, # distance between opposing sides
                                               cx*50-10,cy*50+40, # which is 3/5 of the grid spacing(50px)
-                                              cx*50-10,cy*50+10) # Pretty cool, huh? Math!
+                                              cx*50-10,cy*50+10, # Pretty cool, huh? Math!
+                                              fill="white",
+                                              outline="black",
+                                              tag="cell")
         else:
             return self.canvas.create_rectangle(cx*50+10,cy*50+10,
-                                                cx*50+40,cy*50+40)
+                                                cx*50+40,cy*50+40,
+                                                fill="white",
+                                                outline="black",
+                                                tag="cell")
     
     def cellcounter(self,cx,cy):
         return self.canvas.create_text(cx*50+25,cy*50+25,text=int(self.board.cells[cx,cy].energy),anchor="center")
     
-    def update_focusframe(self):
+    def update_focusframe(self): # redraw / create focus frame if necessary
         x,y,frame,changed=self.focus
         if not changed: return
         if x!=-1 and y!=-1:
@@ -48,21 +61,41 @@ class RenderBoard(object):
         _,_,f,_=self.focus
         self.focus=(x,y,f,True)
     
-    def update_cellcounters(self):
+    def update_cellcounters(self): # update each cell's energy counter
         for coords,cellcnt in self.cellcounters.items():
             x,y=coords
             cell=self.board.cells[x,y]
-            self.canvas.itemconfig(cellcnt,int(cell.energy))
+            self.canvas.itemconfig(cellcnt,text=int(cell.energy))
     
     def update_tarlines(self):
         if not self.tarlineschanged: return
-        ntarlines_req=3*sum([len(c.targets) for c in self.board.cells.values()])
-        ntarlines_act=len(self.tarlinepool)
-        if ntarlines_act>ntarlines_req: # remove unneeded lines
-            newpool={self.tarlinepool.pop() for i in range(ntarlines_req)}
-            for line in self.tarlinepool.difference(newpool):
-                self.canvas.delete(line)
-            self.tarlinepool=newpool
-        elif ntarlines_act!=ntarlines_req: # add more lines if necessary
-            self.tarlinepool.update({self.canvas.create_line(-1,-1,-1,-1) for i in range(ntarlines_req-ntarlines_act)})
-        # Iterate through cells, assign each 3*n lines if needed
+        self.canvas.delete("tarline")
+        for coords,cell in self.board.cells.items():
+            x,y=coords
+            for tar in cell.targets:
+                self.canvas.create_line(x*50+25,y*50+25,tar.x*50+25,tar.y*50+25, arrow=tkinter.LAST, tag="tarline")
+    
+    def onCanvasClicked(self, event):
+        #TODO clicking near the border of an oct cell registers the click at a nearby square cell
+        cx=self.canvas.canvasx(event.x, 1)//50
+        cy=self.canvas.canvasy(event.y, 1)//50
+        
+        cell=self.board.cells[cx,cy]
+        fx,fy,_,_=self.focus
+        if (fx==-1 and fy==-1) or (cx-fx)**2+(cy-fy)**2>self.board.cells[fx,fy].rangeSq:
+            self.focus_onto(cx, cy)
+            print("Set focus to %i,%i" % (cx,cy))
+            return
+        fcell=self.board.cells[fx,fy]
+        if cx==fx and cy==fy:
+            cell.targets=[]
+            print("Cell at %i,%i no longer targeting anything" % (cx,cy))
+        elif cell in fcell.targets:
+            fcell.targets.remove(cell)
+            print("Cell at %i,%i no longer targeting cell at %i,%i" % (fx,fy,cx,cy))
+        elif len(fcell.targets)<fcell.maxTargets:
+            fcell.targets.append(cell)
+            print("Cell at %i,%i now targeting cell at %i,%i" % (fx,fy,cx,cy))
+        else: return
+        self.tarlineschanged=True
+        self.focus_onto(-1, -1)

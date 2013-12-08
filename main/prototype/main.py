@@ -7,6 +7,7 @@ Created on 4 nov. 2013
 from tkinter import *
 from sys import exit
 from prototype.model import Board
+from prototype.render import RenderBoard
 
 def onclick(event):
     print("canvas onclick called")
@@ -31,13 +32,14 @@ def onclick(event):
 
 def update():
     board.tick()
-    board.draw(canvas)
+    renderer.update()
     window.after(50, update)
 
 def startgame():
     launchgame.config(command=0)
-    global board
+    global board,renderer
     board=Board(15,10)
+    renderer=RenderBoard(board,canvas)
     update()
 
 
@@ -51,10 +53,11 @@ window=Tk()
 window.title("OctoTactics - Prototype")
 window.geometry("640x480")
 board=None
+renderer=None
 
 canvas=Canvas(window, bg="white",width=450,height=300 )
 canvas.grid(column=1, row=2, columnspan=3)
-canvas.bind("<Button-1>",onclick)
+#canvas.bind("<Button-1>",onclick)
 
 
 presentation=Label(window, text="Welcome on our first game ever: OctoTactics !")
