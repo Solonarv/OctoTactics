@@ -9,27 +9,6 @@ from sys import exit
 from prototype.model import Board
 from prototype.render import RenderBoard
 
-def onclick(event):
-    print("canvas onclick called")
-    cx=canvas.canvasx(event.x, 1)//30
-    cy=canvas.canvasy(event.y, 1)//30
-    cell=board.cells[cx,cy]
-    if board.focus is None or (cx-board.focus.x)**2+(cy-board.focus.y)**2>=board.focus.rangeSq:
-        board.focus=cell
-        print("Set board.focus to %i,%i" % (cx,cy))
-    elif cell in board.focus.targets:# TODO broken for some reason
-        board.focus.targets.remove(cell)
-        print("Cell at %i,%i is no longer targeting cell at %i,%i" % (board.focus.x,board.focus.y,cx,cy))
-        board.focus=None
-    elif cell==board.focus:
-        board.focus.targets=[]
-        print("Cell at %i,%i is no longer targeting anything" % (cx,cy))
-        board.focus=None
-    elif len(board.focus.targets)<board.focus.maxTargets:
-        board.focus.targets.append(cell)
-        print("Cell at %i,%i is now targeting cell at %i,%i" % (board.focus.x,board.focus.y,cx,cy))
-        board.focus=None
-
 def update():
     board.tick()
     renderer.update()

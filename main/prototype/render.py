@@ -63,8 +63,7 @@ class RenderBoard(object):
     
     def update_cellcounters(self): # update each cell's energy counter
         for coords,cellcnt in self.cellcounters.items():
-            x,y=coords
-            cell=self.board.cells[x,y]
+            cell=self.board.cells[coords]
             self.canvas.itemconfig(cellcnt,text=int(cell.energy))
     
     def update_tarlines(self):
