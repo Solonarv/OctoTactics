@@ -9,18 +9,16 @@ from sys import exit
 from model.model import Board
 from client.render.render import RenderBoard
 
-def update():
-    board.tick()
-    renderer.update()
-    window.after(50, update)
-
 def startgame():
     launchgame.config(command=0)
     global board,renderer
     board=Board(15,10)
     renderer=RenderBoard(board,canvas)
-    update()
-
+    
+def donextturn():
+    board.tick()
+    renderer.update()
+    
 
 def settings():
     pass
@@ -41,7 +39,9 @@ launchgame=Button(window, text="Play!", command=startgame)
 launchgame.grid(column=1, row=1)
 settings=Button(window, text="Settings", command=settings)
 settings.grid(column=2, row=1)
-quitgame=Button(window, text="Quit game - Bad idea!", command=leavegame)
+quitgame=Button(window, text="Ragequit", command=leavegame)
 quitgame.grid(column=3, row=1)
+nextturn=Button(window, text="Next Turn",command=donextturn)
+nextturn.grid(column=4, row=1)
 
 window.mainloop()

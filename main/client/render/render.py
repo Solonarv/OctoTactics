@@ -99,6 +99,7 @@ class RenderBoard(object):
         else: return
         self.tarlineschanged=True
         self.focus_onto(-1, -1)
+        self.update()
     
     def onCanvasRClicked(self,event):
         #TODO clicking near the border of an oct cell registers the click at a nearby square cell
