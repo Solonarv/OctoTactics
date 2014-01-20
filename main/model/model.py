@@ -49,38 +49,38 @@ class OctogonCell(Cell):
     rangeSq=2.2
     maxTargets=3
     def generate_energy(self):
-        self.energy+=0.125
+        self.energy+=3.75
     def transfer_amount(self, target):
         nconn=len(self.targets)
         if nconn==1:
             if target.celltype=="octogon":
-                return self.energy*.0081 # .81% of en /tick <=> 15% per second
+                return self.energy*.216 # 21.6% of en /turn <=> 15% per second
             else:
-                return self.energy*.0053 # .53% of en/tick <=> 10% per second
+                return self.energy*.146 # 14.6% of en/turn <=> 10% per second
         elif nconn==2:
             if target.celltype=="octogon":
-                return self.energy*.0053 # .53% of en/tick <=> 10% per second
+                return self.energy*.146 # 14.6% of en/turn <=> 10% per second
             else:
-                return self.energy*.0039 # .39% of en/tick <=> 7.5% per second
+                return self.energy*.11 # 11% of en/turn <=> 7.5% per second
         elif nconn==3:
             if target.celltype=="octogon":
-                return self.energy*.0043 # .43% of en/tick <=> 8.33% per second
+                return self.energy*.122 # 12.2% of en/turn <=> 8.33% per second
             else:
-                return self.energy*.0034 # .34% of en/tick <=> 6.67% per second
+                return self.energy*.098 # 9.8% of en/turn <=> 6.67% per second
             
 class SquareCell(Cell):
     rangeSq=1.1
     celltype="square"
     maxTargets=1
     def generate_energy(self):
-        self.energy+=0.1
+        self.energy+=3
     def transfer_amount(self, target):
         if target.celltype=="octogon":
-            return self.energy*.014 # 1.4% of en/tick <=> 25% per second
+            return self.energy*.35 # 35% of en/turn <=> 25% per second
         else:
-            return self.energy*.011 # 1.1% of en/tick <=> 20% per second
+            return self.energy*.284 # 28.4% of en/turn <=> 20% per second
         
-class Board:
+class Board: 
     def __init__(self, width, height):
         self.width=width
         self.height=height
