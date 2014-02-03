@@ -15,7 +15,7 @@ class Cell:
         self.owner=owner
         self.shape=None
         self.counter=None
-        self.tarlinepool=set()
+        self.ownerchanged=0
     
     def generate_energy(self):
         pass
@@ -36,10 +36,12 @@ class Cell:
                 if target.energy<0:
                     target.owner=self.owner
                     target.energy=-target.energy
+                    target.ownerchanged=2
                 
     def update(self):
         self.generate_energy()
         self.transfer_energy()
+        self.ownerchanged-=1
     
     def transfer_amount(self, target):
         pass

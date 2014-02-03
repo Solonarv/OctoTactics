@@ -18,6 +18,7 @@ class RenderBoard(object):
         canv.bind('<Button-3>',self.onCanvasRClicked)
     
     def update(self):
+        self.update_cellframes()
         self.update_cellcounters()
         self.update_focusframe()
         self.update_tarlines()
@@ -74,6 +75,13 @@ class RenderBoard(object):
             x,y=coords
             for tar in cell.targets:
                 self.canvas.create_line(x*50+25,y*50+25,tar.x*50+25,tar.y*50+25, arrow=tkinter.LAST, tag="tarline")
+    
+    def update_cellframes(self):
+        for coords,cell in self.board.cells.items():
+            x,y=coords
+            frame=self.cellpolys[coords]
+            if self.canvas.itemcget("outline")!=cell.owner.tex:
+                self.canvas.itemconfigure(frame,outline=cell.owner.tex)
     
     def onCanvasClicked(self, event):
         #TODO clicking near the border of an oct cell registers the click at a nearby square cell

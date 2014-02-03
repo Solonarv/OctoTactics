@@ -6,8 +6,13 @@ Created on 4 nov. 2013
 
 from tkinter import *
 from sys import exit
-from model.model import Board
+from model.board import Board
+from model.player import Player
 from client.render.render import RenderBoard
+
+nil=Player("nil","black")
+me=Player("You","red")
+
 
 def startgame():
     launchgame.config(command=0)
