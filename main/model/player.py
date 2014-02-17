@@ -4,12 +4,10 @@ Created on 03.02.2014
 @author: Solonarv
 '''
 
-class Player:
+class Player(object):
     def __init__(self, name, tex):
         self.name=name
-        self.texpack=tex
+        self.texpackname=tex
     
     def changetex(self, tex):
-        self.texpack=tex
-
-class PlayerClient(Player): pass
+        self.texpackname=tex

@@ -42,6 +42,8 @@ class Cell:
         self.generate_energy()
         self.transfer_energy()
         self.ownerchanged-=1
+        if self.owner.name=="RA" and self.energy>=10:
+            self.energy=10
     
     def transfer_amount(self, target):
         pass
@@ -83,10 +85,11 @@ class SquareCell(Cell):
             return self.energy*.284 # 28.4% of en/turn <=> 20% per second
         
 class Board: 
-    def __init__(self, width, height):
+    def __init__(self, width, height,nullowner):
         self.width=width
         self.height=height
-        self.cells={(x,y): SquareCell(x,y,0) if (x+y)%2 else OctogonCell(x,y,0)
+        self.nullowner=nullowner
+        self.cells={(x,y): SquareCell(x,y,nullowner) if (x+y)%2 else OctogonCell(x,y,nullowner)
                     for x in range(0,width)
                     for y in range(0,height)}
         self.focus=None

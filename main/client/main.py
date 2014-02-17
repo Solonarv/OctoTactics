@@ -4,21 +4,21 @@ Created on 4 nov. 2013
 @author: alex
 '''
 
-from tkinter import *
+from Tkinter import *
 from sys import exit
 from model.board import Board
-from model.player import Player
-from client.render.render import RenderBoard
+from client.render.render import RenderBoard,ClientPlayer
 
-nil=Player("nil","black")
-me=Player("You","red")
+nil=ClientPlayer("RA","minimal")
+me=ClientPlayer("You","magic")
 
 
 def startgame():
     launchgame.config(command=0)
     global board,renderer
-    board=Board(15,10)
-    renderer=RenderBoard(board,canvas)
+    board=Board(15,10,nil)
+    board.cells[0,0].owner=me
+    renderer=RenderBoard(board,canvas,me)
     
 def donextturn():
     board.tick()
