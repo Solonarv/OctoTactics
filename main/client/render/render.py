@@ -5,8 +5,11 @@ Created on 22.11.2013
 '''
 
 import Tkinter
+from os import getcwd
+
+from ImageTk import PhotoImage
 from model.player import Player
-from PIL import ImageTk
+
 
 class RenderBoard(object):
     def __init__(self, board, canv, player):
@@ -126,16 +129,16 @@ class RenderBoard(object):
 
 class ClientPlayer(Player):
     def __init__(self,name,tex):
-        super(self).__init__(name,tex)
+        Player.__init__(self,name,tex)
         self.texpack=TexPack(tex)
         self.reloadtexpack()
 
     def changetex(self,tex):
-        super(self).changetex(tex)
+        Player.changetex(self,tex)
         self.reloadtexpack()
     
     def reloadtexpack(self):
-        self.texpack.packname=self.texpack
+        self.texpack.packname=self.texpackname
         self.texpack.load()
 
 class TexPack(object):
@@ -144,6 +147,12 @@ class TexPack(object):
         self.octogon=None
         self.square=None
     def load(self):
-        path="./assets/textures/%s/" % self.packname
-        self.octogon=ImageTk.PhotoImage(path+"octogon.png")
-        self.square=ImageTk.PhotoImage(path+"square.png")
+        path="assets/textures/%s/" % (self.packname)
+        self.octogon=PhotoImageFromFilename(path+"octogon.png")
+        self.square=PhotoImageFromFilename(path+"square.png")
+
+def PhotoImageFromFilename(fname):
+    fhandle=open(fname)
+    img=PhotoImage(file=fhandle)
+    fhandle.close()
+    return img

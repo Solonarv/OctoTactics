@@ -4,10 +4,14 @@ Created on 4 nov. 2013
 @author: alex
 '''
 
-from Tkinter import *
+from Tkinter import Tk, Canvas, Button
 from sys import exit
+from os import chdir
+
+from client.render.render import RenderBoard, ClientPlayer
 from model.board import Board
-from client.render.render import RenderBoard,ClientPlayer
+
+chdir("..")
 
 nil=ClientPlayer("RA","minimal")
 me=ClientPlayer("You","magic")
