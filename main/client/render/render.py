@@ -6,17 +6,21 @@ Created on 22.11.2013
 
 import Tkinter
 from os import getcwd
+from PIL import ImageTk#,Image
 
-from ImageTk import PhotoImage
 from model.player import Player
+from model.board import OctogonCell,SquareCell
+from collections import OrderedDict
 
 
 class RenderBoard(object):
-    def __init__(self, board, canv, player):
+    def __init__(self, board, canv, playerLeft, playerRight):
         self.board=board
         self.canvas=canv
-        self.player=player
-        self.cellgfxs={(x,y): self.cellgfx(x,y) for x,y in board.cells}
+        self.playerLeft=playerLeft
+        self.playerRight=playerRight
+        self.cellgfxs=OrderedDict({(x,y): self.cellgfx(x,y) for x,y in board.cells if isinstance(board.cells[x,y],SquareCell)})
+        self.cellgfxs.update({(x,y): self.cellgfx(x,y) for x,y in board.cells if isinstance(board.cells[x,y],OctogonCell)})
         self.cellcounters={(x,y): self.cellcounter(x,y) for x,y in board.cells}
         self.focus=(-1,-1,None,False) # x,y,frame,changed
         self.tarlineschanged=False
@@ -26,33 +30,34 @@ class RenderBoard(object):
     def update(self):
         self.update_cellframes()
         self.update_cellcounters()
-        self.update_focusframe()
+        #self.update_focusframe()
         self.update_tarlines()
     
     def cellgfx(self,cx,cy):
         cell=self.board.cells[cx,cy]
         if cell.celltype=="octogon":
-            #return self.canvas.create_polygon(cx*50+10,cy*50-10, # Almost a perfect regular octogon
-            #                                  cx*50+40,cy*50-10, # Side ratio is off by ~6% only
-            #                                  cx*50+60,cy*50+10, # That's less that 2px
-            #                                  cx*50+60,cy*50+40, # And the fractions are really simple
-            #                                  cx*50+40,cy*50+60, # Each axis-aligned side is 3/7 the
-            #                                  cx*50+10,cy*50+60, # distance between opposing sides
-            #                                  cx*50-10,cy*50+40, # which is 3/5 of the grid spacing(50px)
-            #                                  cx*50-10,cy*50+10, # Pretty cool, huh? Math!
+            #return self.canvas.create_polygon(cx*50+20,cy*50+1, # Almost a perfect regular octogon
+            #                                  cx*50+50,cy*50+1, # Side ratio is off by ~6% only
+            #                                  cx*50+69,cy*50+20, # That's less that 2px
+            #                                  cx*50+69,cy*50+50, # And the fractions are really simple
+            #                                  cx*50+50,cy*50+69, # Each axis-aligned side is 3/7 the
+            #                                  cx*50+20,cy*50+69, # distance between opposing sides
+            #                                  cx*50+1,cy*50+50, # which is 3/5 of the grid spacing(50px)
+            #                                  cx*50+1,cy*50+20, # Pretty cool, huh? Math!
             #                                  fill="white",
-            #                                  outline="black",
+            #                                  outline=cell.owner.color,
             #                                  tag="cell")
-            return self.canvas.create_image(cx*50,cy*50,image=cell.owner.texpack.octogon)
+            return self.canvas.create_image(cx*50+35,cy*50+35,image=cell.owner.texpack.img["octogon"])
         else:
-            return self.canvas.create_rectangle(cx*50+10,cy*50+10,
-                                                cx*50+40,cy*50+40,
-                                                fill="white",
-                                                outline="black",
-                                                tag="cell")
+            #return self.canvas.create_rectangle(cx*50+21,cy*50+21,
+            #                                    cx*50+49,cy*50+49,
+            #                                    fill="white",
+            #                                    outline=cell.owner.color,
+            #                                    tag="cell")
+            return self.canvas.create_image(cx*50+35,cy*50+35,image=cell.owner.texpack.img["square"])
     
     def cellcounter(self,cx,cy):
-        return self.canvas.create_text(cx*50+25,cy*50+25,text=int(self.board.cells[cx,cy].energy),anchor="center")
+        return self.canvas.create_text(cx*50+35,cy*50+35,text=int(self.board.cells[cx,cy].energy),anchor="center")
     
     def update_focusframe(self): # redraw / create focus frame if necessary
         x,y,frame,changed=self.focus
@@ -76,34 +81,35 @@ class RenderBoard(object):
             self.canvas.itemconfig(cellcnt,text=int(cell.energy))
     
     def update_tarlines(self):
-        if not self.tarlineschanged: return
+        #if not (self.tarlineschanged or self.ownerschanged): return
         self.canvas.delete("tarline")
         for coords,cell in self.board.cells.items():
             x,y=coords
             for tar in cell.targets:
-                self.canvas.create_line(x*50+25,y*50+25,tar.x*50+25,tar.y*50+25, arrow=Tkinter.LAST, tag="tarline")
+                self.canvas.create_line(x*50+35,y*50+35,tar.x*50+35,tar.y*50+35, arrow=Tkinter.LAST, tag="tarline", fill=cell.owner.color)
     
     def update_cellframes(self):
         for coords,cell in self.board.cells.items():
             x,y=coords
             frame=self.cellgfxs[coords]
-            if self.canvas.itemcget(frame,"outline")!=cell.owner.texpack:
-                self.canvas.itemconfigure(frame,outline=cell.owner.texpack)
+            if cell.ownerchanged:
+                #self.canvas.itemconfigure(frame,outline=cell.owner.color)
+                self.canvas.itemconfigure(frame,image=cell.owner.texpack.img[cell.celltype])
     
     def onCanvasClicked(self, event):
         #TODO clicking near the border of an oct cell registers the click at a nearby square cell
-        cx=self.canvas.canvasx(event.x, 1)//50
-        cy=self.canvas.canvasy(event.y, 1)//50
+        cx=(self.canvas.canvasx(event.x, 1)-10)//50
+        cy=(self.canvas.canvasy(event.y, 1)-10)//50
         
         cell=self.board.cells[cx,cy]
         fx,fy,_,_=self.focus
-        if ((fx==-1 and fy==-1) or (cx-fx)**2+(cy-fy)**2>self.board.cells[fx,fy].rangeSq) and cell.owner==self.player:
+        if ((fx==-1 and fy==-1) or (cx-fx)**2+(cy-fy)**2>self.board.cells[fx,fy].rangeSq) and cell.owner==self.playerLeft:
             self.focus_onto(cx, cy)
             print("Set focus to %i,%i" % (cx,cy))
             return
         if (fx!=-1 and fy!=-1):
             fcell=self.board.cells[fx,fy]
-            if cx==fx and cy==fy and cell.owner==self.player:
+            if cx==fx and cy==fy and cell.owner==self.playerLeft:
                 cell.targets=[]
                 print("Cell at %i,%i no longer targeting anything" % (cx,cy))
             elif cell in fcell.targets:
@@ -123,36 +129,52 @@ class RenderBoard(object):
         cy=self.canvas.canvasy(event.y, 1)//50
         
         cell=self.board.cells[cx,cy]
-        
-        cell.owner=1-cell.owner
-        print("Cell at %i,%i switched owner" % (cx,cy))
+        fx,fy,_,_=self.focus
+        if ((fx==-1 and fy==-1) or (cx-fx)**2+(cy-fy)**2>self.board.cells[fx,fy].rangeSq) and cell.owner==self.playerRight:
+            self.focus_onto(cx, cy)
+            print("Set focus to %i,%i" % (cx,cy))
+            return
+        if (fx!=-1 and fy!=-1):
+            fcell=self.board.cells[fx,fy]
+            if cx==fx and cy==fy and cell.owner==self.playeRight:
+                cell.targets=[]
+                print("Cell at %i,%i no longer targeting anything" % (cx,cy))
+            elif cell in fcell.targets:
+                fcell.targets.remove(cell)
+                print("Cell at %i,%i no longer targeting cell at %i,%i" % (fx,fy,cx,cy))
+            elif len(fcell.targets)<fcell.maxTargets:
+                fcell.targets.append(cell)
+                print("Cell at %i,%i now targeting cell at %i,%i" % (fx,fy,cx,cy))
+            else: return
+        self.tarlineschanged=True
+        self.focus_onto(-1, -1)
+        self.update()
 
 class ClientPlayer(Player):
-    def __init__(self,name,tex):
+    def __init__(self,name,tex,color):
         Player.__init__(self,name,tex)
         self.texpack=TexPack(tex)
-        self.reloadtexpack()
+        self.color=color
 
     def changetex(self,tex):
         Player.changetex(self,tex)
         self.reloadtexpack()
     
-    def reloadtexpack(self):
+    def reloadtexpack(self, imgroot):
         self.texpack.packname=self.texpackname
-        self.texpack.load()
+        self.texpack.load(imgroot)
 
 class TexPack(object):
     def __init__(self,pack):
         self.packname=pack
-        self.octogon=None
-        self.square=None
-    def load(self):
+        self.img={}
+    def load(self, imgroot):
         path="assets/textures/%s/" % (self.packname)
-        self.octogon=PhotoImageFromFilename(path+"octogon.png")
-        self.square=PhotoImageFromFilename(path+"square.png")
+        self.img["octogon"]=PhotoImageFromFilename(path+"octogon.png")#,root=imgroot)
+        self.img["square"]=PhotoImageFromFilename(path+"square.png")#,root=imgroot)
 
 def PhotoImageFromFilename(fname):
-    fhandle=open(fname)
-    img=PhotoImage(file=fhandle)
-    fhandle.close()
+    #fhandle=open(fname)
+    img=ImageTk.PhotoImage(file=fname)
+    #fhandle.close()
     return img

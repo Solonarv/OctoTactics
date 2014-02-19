@@ -42,7 +42,7 @@ class Cell:
         self.generate_energy()
         self.transfer_energy()
         self.ownerchanged-=1
-        if self.owner.name=="RA" and self.energy>=10:
+        if self.owner.name=="ra" and self.energy>=10:
             self.energy=10
     
     def transfer_amount(self, target):
@@ -90,14 +90,20 @@ class Board:
         self.height=height
         self.nullowner=nullowner
         self.cells={(x,y): SquareCell(x,y,nullowner) if (x+y)%2 else OctogonCell(x,y,nullowner)
-                    for x in range(0,width)
-                    for y in range(0,height)}
+                    for x in xrange(0,width)
+                    for y in xrange(0,height)}
         self.focus=None
         self.focusFrame=None
     
     def tick(self):
         for cell in self.cells.values():
             cell.update()
+    
+    def winner(self):
+        owner0=self.cells[0,0].owner
+        if all([c.owner==owner0 for c in self.cells.values()]):
+            return owner0
+        return None
                 
                 
                 
