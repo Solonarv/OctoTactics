@@ -21,7 +21,7 @@ Players={
 
 
 def startgame():
-    launchgame.config(command=0)
+    #launchgame.config(command=0)
     global board,renderer
     board=Board(15,10,Players["ra"])
     board.cells[0,0].owner=board.cells[0,9].owner=Players["Solonarv"]
@@ -34,7 +34,7 @@ def startgame():
 def donextturn():
     board.tick()
     renderer.update()
-    winner=board.winner()
+    counts=board.countcells()
     if winner!=None:
         winnerlabel.config(text="Player %s won." % winner.name)
         
@@ -51,18 +51,21 @@ window.geometry("1024x768")
 board=None
 renderer=None
 
-canvas=Canvas(window, bg="white",width=770,height=520 )
+canvas=Canvas(window, bg="black",width=770,height=520 )
 canvas.grid(column=1, row=2, columnspan=3)
 
-launchgame=Button(window, text="Play!", command=startgame)
-launchgame.grid(column=1, row=1)
+#launchgame=Button(window, text="Play!", command=startgame)
+#launchgame.grid(column=1, row=1)
 settings=Button(window, text="Settings", command=settings)
-settings.grid(column=2, row=1)
+settings.grid(column=1, row=1)
 quitgame=Button(window, text="Ragequit", command=leavegame)
-quitgame.grid(column=3, row=1)
+quitgame.grid(column=2, row=1)
 nextturn=Button(window, text="Next Turn",command=donextturn)
-nextturn.grid(column=4, row=1)
+nextturn.grid(column=3, row=1)
 winnerlabel=Label(window, text="No winner yet")
-winnerlabel.grid(row=2,column=5)
+winnerlabel.grid(row=2,column=4)
+
+
+startgame()
 
 window.mainloop()

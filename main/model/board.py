@@ -99,16 +99,8 @@ class Board:
         for cell in self.cells.values():
             cell.update()
     
-    def winner(self):
-        owner0=self.cells[0,0].owner
-        if all([c.owner==owner0 for c in self.cells.values()]):
-            return owner0
-        return None
-                
-                
-                
-                
-                
-    
-            
-            
+    def countcells(self):
+        scores={}
+        for cell in self.cells.values():
+            if cell.owner.name!="ra":
+                scores[cell.owner.name]=scores.get(cell.owner.name,0)+1
