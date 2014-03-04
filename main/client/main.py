@@ -35,8 +35,8 @@ def donextturn():
     board.tick()
     renderer.update()
     counts=board.countcells()
-    if winner!=None:
-        winnerlabel.config(text="Player %s won." % winner.name)
+    if len(counts)==1:
+        winnerlabel.config(text="Player %s won." % counts.keys()[0].name)
         
 
 def settings():

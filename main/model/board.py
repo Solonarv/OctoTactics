@@ -104,3 +104,4 @@ class Board:
         for cell in self.cells.values():
             if cell.owner.name!="ra":
                 scores[cell.owner.name]=scores.get(cell.owner.name,0)+1
+        return scores
