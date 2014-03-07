@@ -136,7 +136,7 @@ class RenderBoard(object):
             return
         if (fx!=-1 and fy!=-1):
             fcell=self.board.cells[fx,fy]
-            if cx==fx and cy==fy and cell.owner==self.playeRight:
+            if cx==fx and cy==fy and cell.owner==self.playerRight:
                 cell.targets=[]
                 print("Cell at %i,%i no longer targeting anything" % (cx,cy))
             elif cell in fcell.targets:
