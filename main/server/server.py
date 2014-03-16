@@ -4,9 +4,8 @@ Created on 04.03.2014
 @author: Solonarv
 '''
 
-from server import states
+import states
 from model import board
-from sys import argv
 import socket
 
 class Server(object):
@@ -15,7 +14,8 @@ class Server(object):
         self.port=port
         self.state=states.StateJoining(self)
         self.socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind('',port)
+        self.socket.bind(('',port))
+        self.state.run()
     
     def startgame(self):
         self.board=board.Board()

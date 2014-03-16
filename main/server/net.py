@@ -6,6 +6,7 @@ Created on 04.03.2014
 
 from threading import Thread
 from model.player import Player
+import states
 
 class ThreadListenForPlayers(Thread):
     def __init__(self, server, *args, **kwargs):
@@ -14,13 +15,17 @@ class ThreadListenForPlayers(Thread):
     
     def run(self):
         self.server.socket.listen(1)
+        print "ThreadListenForPlayers started"
         while True:
             conn, addr=self.server.socket.accept()
-            print "Incoming connection from", addr
+            print "Incoming connection from %s:%i" % addr
             msg=conn.recv(1024)
             newplayer=ServerPlayer(msg, conn, addr, self.server)
-            currplayers=','.join(["%s|%s"(p.name,p.texpackname) for p in self.server.players])
-            if [p for p in self.server.players if p.name==newplayer.name]:
+            currplayers=','.join(["%s|%s" % (p.name,p.texpackname) for p in self.server.players])
+            if not isinstance(self.server.state,states.StateJoining):
+                conn.sendall("NAK:wrong-server-state")
+                conn.close()
+            elif [p for p in self.server.players if p.name==newplayer.name]:
                 conn.sendall("NAK:duplicate-playername;players:"+currplayers+"\n")
                 conn.close()
             elif [p for p in self.server.players if p.texpackname==newplayer.texpackname]:
@@ -28,6 +33,8 @@ class ThreadListenForPlayers(Thread):
                 conn.close()
             else:
                 conn.sendall("ACK:joined;players:"+currplayers+"\n")
+                self.server.state.addPlayer(newplayer)
+                
 
 class ServerPlayer(Player):
     def __init__(self, msg, conn, addr, server):
