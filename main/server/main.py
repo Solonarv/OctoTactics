@@ -9,9 +9,10 @@ from server import Server
 
 parser=ArgumentParser(description="OctoTactics server application")
 parser.add_argument("--port", "-p", dest="port", default=56239, type=int, help="The TCP port clients will connect to")
+parser.add_argument("--maxplayers", "-mp", dest="maxplayers", default=2, type=int, help="The maximum number of players")
 
 args=parser.parse_args()
 
 
-print "Server started on port %i" % args.port
-server=Server(args.port)
+print "Server started on port %i with %i max. players" % (args.port, args.maxplayers)
+server=Server(args.port, args.maxplayers)

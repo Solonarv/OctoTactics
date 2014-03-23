@@ -7,10 +7,14 @@ Created on 04.03.2014
 import states
 from model import board
 import socket
+from server.util import GameSettings
 
 class Server(object):
-    def __init__(self,port):
+    def __init__(self,port, maxplayers):
         self.players=[]
+        self.owner=None
+        self.settings=GameSettings()
+        self.maxplayers=maxplayers
         self.port=port
         self.state=states.StateJoining(self)
         self.socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)

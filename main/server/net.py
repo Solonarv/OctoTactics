@@ -25,11 +25,14 @@ class ThreadListenForPlayers(Thread):
             if not isinstance(self.server.state,states.StateJoining):
                 conn.sendall("NAK:wrong-server-state")
                 conn.close()
+            elif len(self.server.players)>=self.server.maxplayers:
+                conn.sendall("NAK:server-full")
+                conn.close()
             elif [p for p in self.server.players if p.name==newplayer.name]:
-                conn.sendall("NAK:duplicate-playername;players:"+currplayers+"\n")
+                conn.sendall("NAK:duplicate-playername;players:"+currplayers)
                 conn.close()
             elif [p for p in self.server.players if p.texpackname==newplayer.texpackname]:
-                conn.sendall("NAK:duplicate-texpack;players:"+currplayers+"\n")
+                conn.sendall("NAK:duplicate-texpack;players:"+currplayers)
                 conn.close()
             else:
                 conn.sendall("ACK:joined;players:"+currplayers+"\n")
