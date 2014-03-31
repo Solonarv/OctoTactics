@@ -7,7 +7,7 @@ Created on 04.03.2014
 import states
 from model import board
 import socket
-from server.util import GameSettings
+from util import GameSettings
 
 class Server(object):
     def __init__(self,port, maxplayers):

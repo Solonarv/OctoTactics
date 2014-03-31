@@ -12,10 +12,10 @@ class GameSettings(object):
         self.ops=[]
     
     def encode(self):
-        return ("%ix%i|%s|%s" % (self.boardw,
+        return "%ix%i|%s|%s" % (self.boardw,
                                self.boardh,
-                               ','.join(["%s:%ix%i" % (pname, x, y) for (pname, x, y) in self.starts])),
-                               ','.join(self.ops))
+                               ','.join([("%s:%ix%i" % (pname, x, y)) for (pname, x, y) in self.starts]),
+                               ','.join([p.name for p in self.ops]))
     
     def setoption(self, opt, args):
         if   opt=="boardw":
