@@ -9,6 +9,7 @@ from util import GameSettings
 
 
 class State(object):
+    """State base class"""
     def __init__(self, server):
         self.server=server
         print "Entering state: %s" % self.__class__
@@ -16,6 +17,8 @@ class State(object):
     def kill(self): pass
 
 class StateJoining(State):
+    """Wait for players to join, handling incoming TCP connections.
+    Once maximum number of players is reached, transition to StatePregameLobby."""
     def __init__(self, server):
         State.__init__(self, server)
     
@@ -44,7 +47,7 @@ class StateJoining(State):
     def addPlayer(self, player):
         self.server.players+=[player]
         if self.server.owner not in self.server.players:
-            self.server.owner=player
+            self.server.owner=self.server.owner[0]
         print "Added player: %s" % player.name
         player.conn.sendall(self.server.settings.encode())
         if len(self.server.players)==1:
@@ -53,14 +56,29 @@ class StateJoining(State):
             self.server.setstate(StatePregameLobby)
 
 class StatePregameLobby(State):
+    """Allow server owner (first player to join) to change game settings,
+    allow players to change appearance."""
     def __init__(self, prevstate):
         State.__init__(self,prevstate.server)
     
     def run(self):
-        self.running=True
-        while self.running:
-            msg=self.server.owner.conn.recv(4096).split('\n')
+        if self.waitForReady():
+            self.server.setstate(StateInitializingGame)
+    
+    def waitForReady(self):
+        while True:
+            msg=self.server.owner.conn.recv(4096).strip('\n').split('\n')
             for line in msg:
                 for setting in line.split(";"):
+                    if setting=="startgame" and self.server.settings.gamestartable(): return True
+                    elif setting=="abort": return False
                     option, args=setting.split(":")
                     self.server.settings.setoption(option, args)
+
+class StateInitializingGame(State):
+    """Initialize game board before starting the game. Simple daemon/worker state.
+    Once done, transition to StateIngame."""
+    def __init__(self, prevstate):
+        State.__init__(self, prevstate.server)
+    
+    def run(self): pass
