@@ -16,17 +16,22 @@ class Server(object):
         self.settings=GameSettings()
         self.maxplayers=maxplayers
         self.port=port
-        self.state=states.StateJoining(self)
+        self.statetype=states.StateJoining
         self.socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(('',port))
-        self.state.run()
     
     def startgame(self):
         self.board=board.Board()
     
-    def setstate(self, stateType):
-        oldstate=self.state
-        self.state.stop()
-        self.state=stateType(self.state)
-        oldstate.kill()
+    def run(self):
+        self.state=states.StateJoining(self)
         self.state.run()
+        while True:
+            self.state.stop()
+            os=self.state
+            self.state=self.statetype(os)
+            os.kill()
+            self.state.run()
+    
+    def setstate(self, stateType):
+        self.statetype=stateType
