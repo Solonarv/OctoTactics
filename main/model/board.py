@@ -42,7 +42,7 @@ class Cell:
         self.generate_energy()
         self.transfer_energy()
         self.ownerchanged-=1
-        if self.owner.name=="ra" and self.energy>=10:
+        if self.owner.name.lower()=="ra" and self.energy>=10:
             self.energy=10
     
     def transfer_amount(self, target):

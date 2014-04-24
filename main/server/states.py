@@ -7,6 +7,9 @@ Created on 04.03.2014
 from net import ServerPlayer
 from util import GameSettings
 from socket import error as SocketError
+from model.board import Board
+from net import NullPlayer
+import socket
 
 
 class State(object):
@@ -30,32 +33,39 @@ class StateJoining(State):
             conn, addr=self.server.socket.accept()
             print "Incoming connection from %s:%i" % addr
             msg=conn.recv(1024)
-            newplayer=ServerPlayer(msg, conn, addr, self.server)
+            newplayer=ServerPlayer(msg.strip("\n"), conn, addr, self.server)
             conn.setblocking(False)
             currplayers=','.join(["%s|%s" % (p.name,p.texpackname) for p in self.server.players])
-            if len(self.server.players)>=self.server.maxplayers:
-                conn.sendall("NAK:server-full")
+            if len(self.server.players)>self.server.maxplayers:
+                conn.sendall("NAK:server-full\n")
+                print "Server is full; it should not be in StateJoining anymore! This is a bug."
                 conn.close()
             elif [p for p in self.server.players if p.name==newplayer.name]:
-                conn.sendall("NAK:duplicate-playername;players:"+currplayers)
+                conn.sendall("NAK:duplicate-playername;players:%s\n" % currplayers)
+                print "Player %s attempted to join with duplicate name, request denied." % p.name
                 conn.close()
             elif [p for p in self.server.players if p.texpackname==newplayer.texpackname]:
-                conn.sendall("NAK:duplicate-texpack;players:"+currplayers)
+                conn.sendall("NAK:duplicate-texpack;players:%s\n" % currplayers)
+                print "Player %s attempted to join with duplicate texture pack %s, request denied" % (p.name, p.texpackname)
                 conn.close()
             else:
                 conn.sendall("ACK:joined;players:"+currplayers+"\n")
-                self.addPlayer(newplayer)
+                if self.addPlayer(newplayer): break
     
     def addPlayer(self, player):
         self.server.players+=[player]
         if self.server.owner not in self.server.players:
-            self.server.owner=self.server.owner[0]
+            self.server.owner=self.server.players[1] # self.server.players[0] is RA, the null owner.
+            if self.server.owner not in self.server.settings.ops:
+                self.server.settings.ops+=[self.server.owner]
         print "Added player: %s" % player.name
         player.conn.sendall(self.server.settings.encode())
-        if len(self.server.players)==1:
+        if len(self.server.players)==2 and player not in self.server.settings.ops:
             self.server.settings.ops+=[player]
-        if len(self.server.players)>=self.server.maxplayers:
+        if len(self.server.players)>self.server.maxplayers:
             self.server.setstate(StatePregameLobby)
+            return True
+        return False
 
 class StatePregameLobby(State):
     """Allow server owner (first player to join) to change game settings,
@@ -63,41 +73,64 @@ class StatePregameLobby(State):
     def __init__(self, prevstate):
         State.__init__(self,prevstate.server)
         self.msgqueue={p.name:"" for p in self.server.players}
+        self.ready=set()
     
     def run(self):
+        for player in self.server.players:
+            player.send("owner-name:%s" % self.server.owner.name)
         if self.waitForReady():
             self.server.setstate(StateInitializingGame)
+        else:
+            self.server.setstate(StateStopping)
     
     def waitForReady(self):
         while True:
-            for player in self.server.players:
+            for player in [p for p in self.server.players if not isinstance(p, NullPlayer)]:
                 msginc=""
-                while True: # Receive as much data as possible form the player
+                receiving=True
+                while receiving: # Receive as much data as possible form the player
                     try:
-                        msginc+=player.conn.recv(4096) 
-                    except SocketError: break # Exit loop on EoF
+                        msginc+=player.recv().strip("\n")
+                    except SocketError: receiving=False # Exit loop on EoF
                 self.msgqueue[player.name]+=msginc # Add received data to player's message queue
                 msgs=self.msgqueue[player.name].split(';')
                 self.msgqueue[player.name]=msgs[-1] # message piece after last ; is what's left over and is stored for next iteration
                 msgs=msgs[:-1]
                 for cmd in msgs:
-                    self.runcommand(player, cmd)
+                    if self.runcommand(player, cmd.strip('\n'))=="QUIT":
+                        return False
+            if self.ready.issuperset(self.server.players):
+                return True
     
     def runcommand(self, player, cmd):
-        if cmd.startswith("settexpack:"):
+        print "Processing command from player %s: %s" % (player.name, cmd)
+        if player in self.ready: pass
+        elif cmd.startswith("settexpack:"):
             texpack=cmd.split(":")[1]
             if any([p.texpackname==texpack for p in self.server.players]):
-                player.conn.sendall("NAK:texpack-in-use;")
+                player.send("NAK:texpack-in-use")
             else:
                 player.changetex(texpack)
-        elif cmd.startwith("setting:"):
-            if player.name in self.server.settings.ops:
-                if self.server.settings.setoption(*cmd.split(":")[1:2]):
-                    player.conn.sendall("ACK:option-set;")
+                player.send("ACK:texpack-changed:%s" % texpack)
+                self.server.broadcast("INFO:texpack-changed:%s:%s" % (player.name, texpack))
+        elif cmd.startswith("setting:"):
+            opt, args=cmd.split(":",2)[1:]
+            if player in self.server.settings.ops:
+                if self.server.settings.setoption(opt, args):
+                    player.send("ACK:option-set:'%s:%s'\n" % (opt, args))
+                    self.server.broadcast("INFO:options-changed:%s" % self.server.settings.encode())
                 else:
-                    player.conn.sendall("NAK:option-not-set;")
+                    player.send("NAK:option-not-set:unknown:'%s:%s'" % (opt, args))
             else:
-                player.conn.sendall("NAK:option-not-set:no-rights;")
+                player.send("NAK:option-not-set:no-rights:'%s:%s'" % (opt, args))
+        elif cmd=="ready":
+            if self.server.settings.startsok():
+                self.ready.add(player)
+                player.send("ACK:ready-check")
+                self.server.broadcast("INFO:player-ready:%s" % player.name)
+            else:
+                player.send("NAK:startless-players")
+            
                 
 
 class StateInitializingGame(State):
@@ -105,5 +138,59 @@ class StateInitializingGame(State):
     Once done, transition to StateIngame."""
     def __init__(self, prevstate):
         State.__init__(self, prevstate.server)
+        self.board=None
     
-    def run(self): pass
+    def run(self):
+        self.board=Board(self.server.settings.boardw,self.server.settings.boardh, self.server.boardw, self.server.nullplayer)
+        for (pname, x, y) in self.server.settings.starts:
+            player=self.server.playerbyname(pname)
+            if player!=None: self.board.cells[x, y].owner=player
+        self.server.setstate(StateRunning)
+
+class StateRunning(State):
+    def __init__(self, prevstate):
+        State.__init__(self, prevstate.server)
+        self.board=prevstate.board
+        self.ready=set()
+        self.msgqueue={p.name:"" for p in self.server.players}
+    
+    def run(self):
+        while True:
+            for player in [p for p in self.server.players if not isinstance(p, NullPlayer)]:
+                msginc=""
+                receiving=True
+                while receiving: # Receive as much data as possible form the player
+                    try:
+                        msginc+=player.recv().strip("\n")
+                    except SocketError: receiving=False # Exit loop on EoF
+                self.msgqueue[player.name]+=msginc # Add received data to player's message queue
+                msgs=self.msgqueue[player.name].split(';')
+                self.msgqueue[player.name]=msgs[-1] # message piece after last ; is what's left over and is stored for next iteration
+                msgs=msgs[:-1]
+                for cmd in msgs:
+                    self.process(player, cmd.strip('\n'))
+                if self.gameended():
+                    self.server.setstate(StatePostgame)
+
+class StatePostgame(State):
+    """Postgame state. This state sends score & victory information to all players and lets them chat."""
+    def __init__(self, prevstate):
+        State.__init__(self, prevstate.server)
+    
+    def run(self):
+        # Foo bar
+        self.server.setstate(StateStopping)
+
+class StateStopping(State):
+    """Stop the game. This state is responsible for properly cleaning up and releasing resources. Once done, exit."""
+    def __init__(self, prevstate):
+        State.__init__(self, prevstate.server)
+    
+    def run(self):
+        self.server.broadcast("ERR:server-stopping")
+        for p in self.server.players:
+            p.conn.shutdown(socket.SHUT_RDWR)
+            p.conn.close()
+        self.server.socket.close()
+        
+        exit()

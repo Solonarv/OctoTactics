@@ -6,7 +6,7 @@ Created on 22.11.2013
 
 import Tkinter
 from os import getcwd
-from PIL import ImageTk#,Image
+from PIL import ImageTk
 
 from model.player import Player
 from model.board import OctogonCell,SquareCell

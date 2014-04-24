@@ -15,3 +15,19 @@ class ServerPlayer(Player):
         self.server=server
         self.conn=conn
         self.addr=addr
+    
+    def send(self, msg):
+        self.conn.sendall(msg+"\n")
+        print "[NET] Sent to %s: %s" % (self.name, msg)
+    
+    def recv(self,buf=4096):
+        rc=self.conn.recv(buf)
+        print "[NET] Recv from %s: %s" % (self.name, rc)
+        return rc
+
+class NullPlayer(ServerPlayer):
+    def __init__(self, name,server):
+        ServerPlayer.__init__(self, name + ":<>", None, None, server)
+    
+    def send(self, msg): pass
+    def recv(self, buf=4096): return ""

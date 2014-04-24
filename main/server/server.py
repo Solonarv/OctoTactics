@@ -8,10 +8,12 @@ import states
 from model import board
 import socket
 from util import GameSettings
+from net import NullPlayer
 
 class Server(object):
     def __init__(self,port, maxplayers):
-        self.players=[]
+        self.nullplayer=NullPlayer("RA", self)
+        self.players=[self.nullplayer]
         self.owner=None
         self.settings=GameSettings()
         self.maxplayers=maxplayers
@@ -35,3 +37,12 @@ class Server(object):
     
     def setstate(self, stateType):
         self.statetype=stateType
+    
+    def broadcast(self, msg):
+        for pl in self.players:
+            pl.send(msg)
+    
+    def playerbyname(self, pname):
+        for p in self.players:
+            if p.name==pname: return p
+        return None

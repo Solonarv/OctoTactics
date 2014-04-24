@@ -17,7 +17,7 @@ class GameSettings(object):
                                ','.join([("%s:%ix%i" % (pname, x, y)) for (pname, x, y) in self.starts]),
                                ','.join([p.name for p in self.ops]))
     
-    def setoption(self, opt, args):
+    def setoption(self, opt, args=""):
         if   opt=="boardw":
             try:
                 self.boardw=int(args)
@@ -43,7 +43,7 @@ class GameSettings(object):
         elif opt=="removestarts":
             success=False
             for (pname, x, y) in self.starts:
-                if pname==args: self.starts.remove((pname, x, y))
+                if pname==args or args=="": self.starts.remove((pname, x, y))
                 success=True
             return success
         return False

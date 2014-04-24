@@ -16,3 +16,5 @@ args=parser.parse_args()
 
 print "Server started on port %i with %i max. players" % (args.port, args.maxplayers)
 server=Server(args.port, args.maxplayers)
+
+server.run()
