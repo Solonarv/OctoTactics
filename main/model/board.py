@@ -4,6 +4,8 @@ Created on 4 nov. 2013
 @author: alex
 '''
 
+RA_MAX_ENERGY=10
+
 class Cell:
     celltype=""
     rangeSq=0
@@ -43,10 +45,15 @@ class Cell:
         self.transfer_energy()
         self.ownerchanged-=1
         if self.owner.name.lower()=="ra" and self.energy>=10:
-            self.energy=10
+            self.energy=RA_MAX_ENERGY
     
     def transfer_amount(self, target):
         pass
+    
+    def encode(self):
+        return "%s:%.2f:%s" % (self.celltype[0],
+                               self.energy,
+                               ",".join(["%ix%i" % (tar.x, tar.y) for tar in self.targets]))
 
 class OctogonCell(Cell):
     celltype="octogon"
@@ -90,8 +97,8 @@ class Board:
         self.height=height
         self.nullowner=nullowner
         self.cells={(x,y): SquareCell(x,y,nullowner) if (x+y)%2 else OctogonCell(x,y,nullowner)
-                    for x in xrange(0,width)
-                    for y in xrange(0,height)}
+                    for x in xrange(width)
+                    for y in xrange(height)}
         self.focus=None
         self.focusFrame=None
     
@@ -105,3 +112,8 @@ class Board:
             if cell.owner.name!="ra":
                 scores[cell.owner.name]=scores.get(cell.owner.name,0)+1
         return scores
+    
+    def encode(self):
+        return "%ix%i\n%s" % (self.width,
+                              self.height,
+                              "\n".join(["|".join([self.cells[x,y].encode for x in xrange(self.width)]) for y in xrange(self.height)])

@@ -4,12 +4,13 @@ Created on 04.03.2014
 @author: Solonarv
 '''
 
+from socket import error as SocketError
+import socket
+
+from model.board import Board, RA_MAX_ENERGY
+from net import NullPlayer
 from net import ServerPlayer
 from util import GameSettings
-from socket import error as SocketError
-from model.board import Board
-from net import NullPlayer
-import socket
 
 
 class State(object):
@@ -151,8 +152,10 @@ class StateRunning(State):
     def __init__(self, prevstate):
         State.__init__(self, prevstate.server)
         self.board=prevstate.board
-        self.ready=set()
+        self.ready={self.server.nullplayer}
+        self._allplayers=frozenset(self.server.players)
         self.msgqueue={p.name:"" for p in self.server.players}
+        self.cellcounts=self.board.countcells()
     
     def run(self):
         while True:
@@ -169,12 +172,18 @@ class StateRunning(State):
                 msgs=msgs[:-1]
                 for cmd in msgs:
                     self.process(player, cmd.strip('\n'))
+                if self.ready==self._allplayers:
+                    self.tick()
                 if self.gameended():
                     self.server.setstate(StatePostgame)
     
     def process(self, player, cmd):
+        if player in self.ready:
+            player.send("NAK:locked-in")
+            return
         if cmd.startswith("untarget:"):
-            try: xf, yf, xt, yt=(int(x) for x in cmd.split(":",4)[1:])
+            try:
+                xf, yf, xt, yt=(int(x) for x in cmd.split(":",4)[1:])
             except ValueError:
                 player.send("NAK:no-untarget:bad-coord-format")
                 return
@@ -193,7 +202,8 @@ class StateRunning(State):
             except ValueError:
                 player.send("ACK:already-done")
         elif cmd.startswith("target:"):
-            try: xf, yf, xt, yt=(int(x) for x in cmd.split(":",4)[1:])
+            try:
+                xf, yf, xt, yt=(int(x) for x in cmd.split(":",4)[1:])
             except ValueError:
                 player.send("NAK:no-target:bad-coord-format")
                 return
@@ -206,8 +216,44 @@ class StateRunning(State):
             if fcell.owner!=player:
                 player.send("NAK:cell-not-owned")
                 return
-            if (xf-xt)*(xf-xt)+(yf-yt)*(yf-yt):
-                pass
+            if tcell in fcell.targets:
+                player.send("ACK:already-done")
+                return
+            if len(fcell.targets) > fcell.maxTargets:
+                player.send("NAK:too-many-targets")
+                return
+            if (xf-xt)*(xf-xt)+(yf-yt)*(yf-yt) > fcell.rangeSq:
+                player.send("NAK:out-of-range")
+                return
+            fcell.targets.append(tcell)
+        elif cmd=="forfeit":
+            if self.cellcounts[player.name]<=0:
+                player.send("NAK:game-over")
+                return
+            self.cellcounts[player.name]=-1
+            for cell in self.board.cells.values():
+                if cell.owner==player:
+                    cell.owner=self.server.nullowner
+                    cell.targets=[]
+                    cell.energy=max(cell.energy, RA_MAX_ENERGY)
+            player.send("ACK:forfeited")
+        elif cmd=="ready":
+            self.ready.add(player)
+    
+    def gameended(self):
+        scores=self.board.countcells()
+        ended=True
+        for pn,cc in self.cellcounts.iteritems():
+            if cc>0:
+                ended=False
+                self.cellcounts[pn]=scores[pn]
+                if scores[pn]==0: self.server.playerbyname(pn).send("INFO:lost-all-cells")
+        return ended
+    
+    def tick(self):
+        self.board.tick()
+        self.ready={self.server.nullplayer}
+        self.server.broadcast(self.board.encode())
 
 class StatePostgame(State):
     """Postgame state. This state sends score & victory information to all players and lets them chat."""

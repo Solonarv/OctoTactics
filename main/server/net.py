@@ -26,8 +26,8 @@ class ServerPlayer(Player):
         return rc
 
 class NullPlayer(ServerPlayer):
-    def __init__(self, name,server):
-        ServerPlayer.__init__(self, name + ":<>", None, None, server)
+    def __init__(self, server):
+        ServerPlayer.__init__(self, name + "RA:<>", None, None, server)
     
     def send(self, msg): pass
     def recv(self, buf=4096): return ""

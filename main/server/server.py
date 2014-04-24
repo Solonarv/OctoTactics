@@ -12,7 +12,7 @@ from net import NullPlayer
 
 class Server(object):
     def __init__(self,port, maxplayers):
-        self.nullplayer=NullPlayer("RA", self)
+        self.nullplayer=NullPlayer(self)
         self.players=[self.nullplayer]
         self.owner=None
         self.settings=GameSettings()
@@ -29,7 +29,7 @@ class Server(object):
         self.state=states.StateJoining(self)
         self.state.run()
         while True:
-            self.state.stop()
+            #self.state.stop()
             os=self.state
             self.state=self.statetype(os)
             os.kill()
