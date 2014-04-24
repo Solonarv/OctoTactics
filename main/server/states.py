@@ -171,6 +171,43 @@ class StateRunning(State):
                     self.process(player, cmd.strip('\n'))
                 if self.gameended():
                     self.server.setstate(StatePostgame)
+    
+    def process(self, player, cmd):
+        if cmd.startswith("untarget:"):
+            try: xf, yf, xt, yt=(int(x) for x in cmd.split(":",4)[1:])
+            except ValueError:
+                player.send("NAK:no-untarget:bad-coord-format")
+                return
+            try:
+                fcell=self.board.cells[xf,yf]
+                tcell=self.board.cells[xt,yt]
+            except KeyError:
+                player.send("NAK:no-untarget:coords-out-of-bounds")
+                return
+            if fcell.owner!=player:
+                player.send("NAK:cell-not-owned")
+                return
+            try:
+                fcell.targets.remove(tcell)
+                player.send("ACK:cell-untargeted:%i,%i:%i,%i" % (xf,yf,xt,yt))
+            except ValueError:
+                player.send("ACK:already-done")
+        elif cmd.startswith("target:"):
+            try: xf, yf, xt, yt=(int(x) for x in cmd.split(":",4)[1:])
+            except ValueError:
+                player.send("NAK:no-target:bad-coord-format")
+                return
+            try:
+                fcell=self.board.cells[xf,yf]
+                tcell=self.board.cells[xt,yt]
+            except KeyError:
+                player.send("NAK:no-target:coords-out-of-bounds")
+                return
+            if fcell.owner!=player:
+                player.send("NAK:cell-not-owned")
+                return
+            if (xf-xt)*(xf-xt)+(yf-yt)*(yf-yt):
+                pass
 
 class StatePostgame(State):
     """Postgame state. This state sends score & victory information to all players and lets them chat."""
