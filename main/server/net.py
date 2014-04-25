@@ -25,9 +25,9 @@ class ServerPlayer(Player):
         self.connw.send(msg+";\n")
         print "[NET] Sent to %s: %s" % (self.name, msg)
     
-    def recv(self,buf=4096):
+    def recv(self):
         rc=self.connw.recv()
-        print "[NET] Recv from %s: %s" % (self.name, rc)
+        if rc: print "[NET] Recv from %s: %s" % (self.name, rc)
         return rc
 
 class NullPlayer(ServerPlayer):

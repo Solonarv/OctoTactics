@@ -46,4 +46,11 @@ class GameSettings(object):
                 if pname==args or args=="": self.starts.remove((pname, x, y))
                 success=True
             return success
+        elif opt=="deop":
+            if args in self.ops:
+                self.ops.remove(args)
+            return True
+        elif opt=="giveop":
+            if args not in self.ops:
+                self.ops.append(args)
         return False

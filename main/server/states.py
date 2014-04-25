@@ -53,13 +53,14 @@ class StateJoining(State):
                 if self.addPlayer(newplayer): break
     
     def addPlayer(self, player):
+        self.server.broadcast("INFO:player-joined:%s:%s" % (player.name, player.texpackname))
         self.server.players+=[player]
         if self.server.owner not in self.server.players:
             self.server.owner=self.server.players[1] # self.server.players[0] is RA, the null owner.
             if self.server.owner not in self.server.settings.ops:
                 self.server.settings.ops+=[self.server.owner]
         print "Added player: %s" % player.name
-        player.conn.sendall(self.server.settings.encode())
+        player.send(self.server.settings.encode())
         if len(self.server.players)==2 and player not in self.server.settings.ops:
             self.server.settings.ops+=[player]
         if len(self.server.players)>self.server.maxplayers:
@@ -72,12 +73,10 @@ class StatePregameLobby(State):
     allow players to change appearance."""
     def __init__(self, prevstate):
         State.__init__(self,prevstate.server)
-        self.msgqueue={p.name:"" for p in self.server.players}
         self.ready=set()
     
     def run(self):
-        for player in self.server.players:
-            player.send("owner-name:%s" % self.server.owner.name)
+        self.server.broadcast("INFO:owner-name:%s" % self.server.owner.name)
         if self.waitForReady():
             self.server.setstate(StateInitializingGame)
         else:
@@ -86,16 +85,8 @@ class StatePregameLobby(State):
     def waitForReady(self):
         while True:
             for player in [p for p in self.server.players if not isinstance(p, NullPlayer)]:
-                msginc=""
-                receiving=True
-                while receiving: # Receive as much data as possible form the player
-                    try:
-                        msginc+=player.recv()
-                    except SocketError: receiving=False # Exit loop on EoF
-                self.msgqueue[player.name]+=msginc # Add received data to player's message queue
-                msgs=self.msgqueue[player.name].split(';')
-                self.msgqueue[player.name]=msgs[-1] # message piece after last ; is what's left over and is stored for next iteration
-                msgs=msgs[:-1]
+                msginc=player.recv()
+                msgs=msginc.split(';')
                 for cmd in msgs:
                     if self.runcommand(player, cmd.strip('\n'))=="QUIT":
                         return False
@@ -103,6 +94,7 @@ class StatePregameLobby(State):
                 return True
     
     def runcommand(self, player, cmd):
+        if cmd=="": return
         print "Processing command from player %s: %s" % (player.name, cmd)
         if player in self.ready: pass
         elif cmd.startswith("settexpack:"):
@@ -157,6 +149,7 @@ class StateRunning(State):
         self.cellcounts=self.board.countcells()
     
     def run(self):
+        self.server.broadcast("BOARD:"+self.board.encode())
         while True:
             for player in [p for p in self.server.players if not isinstance(p, NullPlayer)]:
                 msginc=""
@@ -252,7 +245,7 @@ class StateRunning(State):
     def tick(self):
         self.board.tick()
         self.ready={self.server.nullplayer}
-        self.server.broadcast(self.board.encode())
+        self.server.broadcast("BOARD:"+self.board.encode())
 
 class StatePostgame(State):
     """Postgame state. This state sends score & victory information to all players and lets them chat."""

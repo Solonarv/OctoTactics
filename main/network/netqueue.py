@@ -14,9 +14,9 @@ class NetQueue(object):
     '''
 
 
-    def __init__(self, sock, sep=";\n", timeout=1, recvbuf=4096):
+    def __init__(self, sock, sep=";\n", timeout=.2, recvbuf=4096):
         self.socket=sock
-        self.blocking=timeout
+        self.timeout=timeout
         sock.settimeout(timeout)
         self.sep=sep
         self.recvbuf=4096
@@ -30,9 +30,21 @@ class NetQueue(object):
                         break
                 except socket.error:  # Exit loop on EoF
                     break
-            x, xs=self.queue.split(self.sep, 1)
-            self.queue=xs
-            return x
+            if self.sep in self.queue:
+                x, xs=self.queue.split(self.sep, 1)
+                self.queue=xs
+                return x
+            else:
+                return ""
+    
+    def pushback(self, msg):
+        """
+        Shove a non-processed message back into the output end of the queue
+        """
+        self.queue="%s%s%s" % (msg, self.sep, self.queue)
     
     def send(self, msg):
-        return self.socket.sendall(msg)
+        self.socket.setblocking(True)
+        ret=self.socket.sendall(msg)
+        self.socket.settimeout(self.timeout)
+        return ret
