@@ -17,7 +17,7 @@ class ServerPlayer(Player):
         self.addr=addr
     
     def send(self, msg):
-        self.conn.sendall(msg+"\n")
+        self.conn.sendall(msg+";\n")
         print "[NET] Sent to %s: %s" % (self.name, msg)
     
     def recv(self,buf=4096):
@@ -27,7 +27,7 @@ class ServerPlayer(Player):
 
 class NullPlayer(ServerPlayer):
     def __init__(self, server):
-        ServerPlayer.__init__(self, name + "RA:<>", None, None, server)
+        ServerPlayer.__init__(self,"RA:<>", None, None, server)
     
     def send(self, msg): pass
     def recv(self, buf=4096): return ""

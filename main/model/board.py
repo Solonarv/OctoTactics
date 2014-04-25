@@ -114,6 +114,5 @@ class Board:
         return scores
     
     def encode(self):
-        return "%ix%i\n%s" % (self.width,
-                              self.height,
-                              "\n".join(["|".join([self.cells[x,y].encode for x in xrange(self.width)]) for y in xrange(self.height)])
+        return "%ix%i\n%s" % (self.width, self.height, \
+                              "\n".join(["|".join([self.cells[x,y].encode() for x in xrange(self.width)]) for y in xrange(self.height)]))

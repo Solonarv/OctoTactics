@@ -4,13 +4,13 @@ Created on 22.11.2013
 @author: Solonarv
 '''
 
-import Tkinter
-from os import getcwd
 from PIL import ImageTk
-
-from model.player import Player
-from model.board import OctogonCell,SquareCell
+import Tkinter
 from collections import OrderedDict
+from os import getcwd, path
+
+from model.board import OctogonCell, SquareCell
+from model.player import Player
 
 
 class RenderBoard(object):
@@ -170,11 +170,10 @@ class TexPack(object):
         self.img={}
     def load(self, imgroot):
         path="assets/textures/%s/" % (self.packname)
-        self.img["octogon"]=PhotoImageFromFilename(path+"octogon.png")#,root=imgroot)
-        self.img["square"]=PhotoImageFromFilename(path+"square.png")#,root=imgroot)
-
-def PhotoImageFromFilename(fname):
-    #fhandle=open(fname)
-    img=ImageTk.PhotoImage(file=fname)
-    #fhandle.close()
-    return img
+        self.img["octogon"]=ImageTk.PhotoImage(file=path+"octogon.png")#,root=imgroot)
+        self.img["square"]=ImageTk.PhotoImage(file=path+"square.png")#,root=imgroot)
+    @staticmethod
+    def istexpack(name):
+        pth=getcwd()+"/assets/textures/" + name
+        print "Checking for texpack: " + pth
+        return path.isfile(pth+"/octogon.png") and path.isfile(pth+"/square.png")

@@ -38,15 +38,15 @@ class StateJoining(State):
             conn.setblocking(False)
             currplayers=','.join(["%s|%s" % (p.name,p.texpackname) for p in self.server.players])
             if len(self.server.players)>self.server.maxplayers:
-                conn.sendall("NAK:server-full\n")
+                conn.sendall("NAK:server-full;\n")
                 print "Server is full; it should not be in StateJoining anymore! This is a bug."
                 conn.close()
             elif [p for p in self.server.players if p.name==newplayer.name]:
-                conn.sendall("NAK:duplicate-playername;players:%s\n" % currplayers)
+                conn.sendall("NAK:duplicate-playername;players:%s;\n" % currplayers)
                 print "Player %s attempted to join with duplicate name, request denied." % p.name
                 conn.close()
             elif [p for p in self.server.players if p.texpackname==newplayer.texpackname]:
-                conn.sendall("NAK:duplicate-texpack;players:%s\n" % currplayers)
+                conn.sendall("NAK:duplicate-texpack;players:%s;\n" % currplayers)
                 print "Player %s attempted to join with duplicate texture pack %s, request denied" % (p.name, p.texpackname)
                 conn.close()
             else:
