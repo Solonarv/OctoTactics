@@ -10,7 +10,6 @@ import socket
 from model.board import Board, RA_MAX_ENERGY
 from net import NullPlayer
 from net import ServerPlayer
-from util import GameSettings
 
 
 class State(object):
@@ -35,7 +34,7 @@ class StateJoining(State):
             print "Incoming connection from %s:%i" % addr
             msg=conn.recv(1024)
             newplayer=ServerPlayer(msg.strip("\n"), conn, addr, self.server)
-            conn.setblocking(False)
+            conn.settimeout(.5)
             currplayers=','.join(["%s|%s" % (p.name,p.texpackname) for p in self.server.players])
             if len(self.server.players)>self.server.maxplayers:
                 conn.sendall("NAK:server-full;\n")
@@ -47,10 +46,10 @@ class StateJoining(State):
                 conn.close()
             elif [p for p in self.server.players if p.texpackname==newplayer.texpackname]:
                 conn.sendall("NAK:duplicate-texpack;players:%s;\n" % currplayers)
-                print "Player %s attempted to join with duplicate texture pack %s, request denied" % (p.name, p.texpackname)
+                print "Player %s attempted to join with duplicate texture pack %s, request denied" % (newplayer.name, newplayer.texpackname)
                 conn.close()
             else:
-                conn.sendall("ACK:joined;players:"+currplayers+"\n")
+                conn.sendall("ACK:joined;players:"+currplayers+";\n")
                 if self.addPlayer(newplayer): break
     
     def addPlayer(self, player):
@@ -91,7 +90,7 @@ class StatePregameLobby(State):
                 receiving=True
                 while receiving: # Receive as much data as possible form the player
                     try:
-                        msginc+=player.recv().strip("\n")
+                        msginc+=player.recv()
                     except SocketError: receiving=False # Exit loop on EoF
                 self.msgqueue[player.name]+=msginc # Add received data to player's message queue
                 msgs=self.msgqueue[player.name].split(';')

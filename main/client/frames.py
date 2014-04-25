@@ -8,7 +8,7 @@ import socket
 
 import Tkinter as tk
 from render.render import TexPack
-from util.netqueue import NetQueue
+from network.netqueue import NetQueue
 
 
 class FrameConnect(tk.Frame):
@@ -16,30 +16,33 @@ class FrameConnect(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent=parent
         self.parent.title("OctoTactics: Connect to a server")
-        self.grid()
-        self.plist=None
-        self.lbPlist=None
+        self.pack(fill=tk.BOTH, expand=1)
     
     def mkWidgets(self):
         self.lbUsername=tk.Label(self, width=20, text="User name")
-        self.lbUsername.grid(row=0, column=0)
+        self.lbUsername.grid(row=1, column=0)
         self.boxUsername=tk.Entry(self, width=20)
-        self.boxUsername.grid(row=0, column=1)
+        self.boxUsername.grid(row=1, column=1)
         
         self.lbServerAddr=tk.Label(self, width=20, text="Server address")
-        self.lbServerAddr.grid(row=1, column=0)
+        self.lbServerAddr.grid(row=2, column=0)
         self.boxServerAddr=tk.Entry(self, width=20)
-        self.boxServerAddr.grid(row=1, column=1)
+        self.boxServerAddr.grid(row=2, column=1)
         
         self.lbTexPack=tk.Label(self, width=20, text="Texture pack")
-        self.lbTexPack.grid(row=2, column=0)
+        self.lbTexPack.grid(row=3, column=0)
         self.boxTexPack=tk.Entry(self, width=20)
-        self.boxTexPack.grid(row=2, column=1)
+        self.boxTexPack.grid(row=3, column=1)
         
         self.btnConnect=tk.Button(self, command=self.connect, width=10, text="Connect")
-        self.btnConnect.grid(row=3, column=0)
+        self.btnConnect.grid(row=4, column=0)
         self.lbStatus=tk.Label(self, width=30, text="")
-        self.lbStatus.grid(row=3, column=1)
+        self.lbStatus.grid(row=4, column=1)
+        
+        self.plist=tk.Listbox(self, state=tk.DISABLED, width=50, height=5)
+        self.plist.grid(row=1, column=2, rowspan=3)
+        self.lbPlist=tk.Label(self, text="Players:", width=10)
+        self.lbPlist.grid(row=0, column=2, sticky=tk.W)
     
     def clear(self):
         self.destroy()
@@ -47,6 +50,9 @@ class FrameConnect(tk.Frame):
     def connect(self):
         """Attempt to connect to the server entered by the user."""
         # Check existence of texture pack
+        if self.boxUsername.get()=="":
+            self.setstatus("User name must not be empty")
+            return
         if self.boxUsername.get().count(":"):
             self.setstatus("User name may not contain colons (:)")
             return
@@ -80,18 +86,13 @@ class FrameConnect(tk.Frame):
                     self.showplayers([tuple(s.split("|")) for s in msg.split(";players:")[1].strip("\n").split(",")])
             except ValueError:
                 self.setstatus("Invalid server address")
+                raise
                 return
             except socket.error:
                 self.setstatus("Internal socket error")
                 return
     
     def showplayers(self, players):
-        if self.plist is None:
-            self.plist=tk.Listbox(self, state=tk.DISABLED, width=50)
-        if self.lbPlist is None:
-            self.lbPlist=tk.Label(self, text="Players:", width=10)
-        self.lbPlist.grid(row=0, column=2, sticky=tk.W)
-        self.plist.grid(row=1, column=2, rowspan=2)
         self.plist.delete(0, tk.END)
         self.plist.insert(0, ["%s: %s" % p for p in players])
             
@@ -113,7 +114,6 @@ class FrameConnect(tk.Frame):
 if __name__=="__main__":
     chdir("..")
     root=tk.Tk()
-    root.geometry("1024x768")
     fr=FrameConnect(root)
     fr.mkWidgets()
     root.mainloop()

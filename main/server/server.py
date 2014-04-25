@@ -7,7 +7,7 @@ Created on 04.03.2014
 import states
 from model import board
 import socket
-from util import GameSettings
+from sutil import GameSettings
 from net import NullPlayer
 
 class Server(object):
