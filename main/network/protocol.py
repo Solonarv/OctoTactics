@@ -3,20 +3,39 @@ Created on 22.08.2013
 
 @author: Solonarv
 '''
-from server.model.cells import Cell
-from abc import ABCMeta, abstractmethod, abstractclassmethod
+from twisted.protocols import basic
 
-class Packet(object, metaclass=ABCMeta):
-    def __init__(self, tp): self.tp = tp
-    @abstractmethod
-    def toBinary(self) -> bytearray:
-        return bytearray((self.tp,))
-        
+class DelegatingChannelProtocol(basic.LineReceiver):
+    """
+    A Twisted protocol that delegates message handling to another object, passing channel hierarchy
+    and message separately. By default, expects messages of the form:
+    
+    channel/subchannel/subsubchannel:message of whatever
+    
+    This'll call:
+    
+    self.msghandler.handler(self, ['channel','subchannel','subsubchannel'], 'message of whatever')
+    
+    msghandler is passed in at protocol instantiation. 
+    
+    """
+    def __init__(self, factory, msghandler, msgstart=":", chandelim="/"):
+        self.factory=factory
+        self.msghandler=msghandler
+        self.msgstart=msgstart
+        self.chandelim=chandelim
+    
+    def lineReceived(self, line):
+        chan, msg = None,None
+        try:
+            chan, msg = line.split(self.msgstart)
+            chan = chan.split(self.chandelim)
+        except ValueError: # split() failed => invalid message; print and ignore
+            print "Received invalid line from: %s" % (line)
+            return
+        self.msghandler.handle(self, chan, msg)
 
-class Packet001Cell(Packet):
-    def __init__(self, cell : Cell):
-        self.cell = cell
-    @abstractmethod
-    def toBinary(self) -> bytearray:
-        b = Packet.toBinary(self)
-        b.extend((self.data.pos[0], self.data.pos[1]))
+class DCMessageHandlerBase(object):
+    
+    def handle(self, protocol, chan, msg):
+        pass

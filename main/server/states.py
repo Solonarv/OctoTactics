@@ -27,32 +27,10 @@ class StateJoining(State):
         State.__init__(self, server)
     
     def run(self):
-        self.server.socket.listen(1)
-        print "Listening for incoming connections"
-        while True:
-            conn, addr=self.server.socket.accept()
-            print "Incoming connection from %s:%i" % addr
-            msg=conn.recv(1024)
-            newplayer=ServerPlayer(msg.strip("\n"), conn, addr, self.server)
-            conn.settimeout(.5)
-            currplayers=','.join(["%s|%s" % (p.name,p.texpackname) for p in self.server.players])
-            if len(self.server.players)>self.server.maxplayers:
-                conn.sendall("NAK:server-full;\n")
-                print "Server is full; it should not be in StateJoining anymore! This is a bug."
-                conn.close()
-            elif [p for p in self.server.players if p.name==newplayer.name]:
-                conn.sendall("NAK:duplicate-playername;players:%s;\n" % currplayers)
-                print "Player %s attempted to join with duplicate name, request denied." % p.name
-                conn.close()
-            elif [p for p in self.server.players if p.texpackname==newplayer.texpackname]:
-                conn.sendall("NAK:duplicate-texpack;players:%s;\n" % currplayers)
-                print "Player %s attempted to join with duplicate texture pack %s, request denied" % (newplayer.name, newplayer.texpackname)
-                conn.close()
-            else:
-                conn.sendall("ACK:joined;players:"+currplayers+";\n")
-                if self.addPlayer(newplayer): break
-    
+        pass # TODO use Twisted
+        
     def addPlayer(self, player):
+        # TODO use Twisted
         self.server.broadcast("INFO:player-joined:%s:%s" % (player.name, player.texpackname))
         self.server.players+=[player]
         if self.server.owner not in self.server.players:
@@ -76,52 +54,12 @@ class StatePregameLobby(State):
         self.ready=set()
     
     def run(self):
-        self.server.broadcast("INFO:owner-name:%s" % self.server.owner.name)
-        if self.waitForReady():
-            self.server.setstate(StateInitializingGame)
-        else:
-            self.server.setstate(StateStopping)
-    
-    def waitForReady(self):
-        while True:
-            for player in [p for p in self.server.players if not isinstance(p, NullPlayer)]:
-                msginc=player.recv()
-                msgs=msginc.split(';')
-                for cmd in msgs:
-                    if self.runcommand(player, cmd.strip('\n'))=="QUIT":
-                        return False
-            if self.ready.issuperset(self.server.players):
-                return True
+        # TODO use Twisted
+        pass
     
     def runcommand(self, player, cmd):
-        if cmd=="": return
-        print "Processing command from player %s: %s" % (player.name, cmd)
-        if player in self.ready: pass
-        elif cmd.startswith("settexpack:"):
-            texpack=cmd.split(":")[1]
-            if any([p.texpackname==texpack for p in self.server.players]):
-                player.send("NAK:texpack-in-use")
-            else:
-                player.changetex(texpack)
-                player.send("ACK:texpack-changed:%s" % texpack)
-                self.server.broadcast("INFO:texpack-changed:%s:%s" % (player.name, texpack))
-        elif cmd.startswith("setting:"):
-            opt, args=cmd.split(":",2)[1:]
-            if player in self.server.settings.ops:
-                if self.server.settings.setoption(opt, args):
-                    player.send("ACK:option-set:'%s:%s'\n" % (opt, args))
-                    self.server.broadcast("INFO:options-changed:%s" % self.server.settings.encode())
-                else:
-                    player.send("NAK:option-not-set:unknown:'%s:%s'" % (opt, args))
-            else:
-                player.send("NAK:option-not-set:no-rights:'%s:%s'" % (opt, args))
-        elif cmd=="ready":
-            if self.server.settings.startsok():
-                self.ready.add(player)
-                player.send("ACK:ready-check")
-                self.server.broadcast("INFO:player-ready:%s" % player.name)
-            else:
-                player.send("NAK:startless-players")
+        # TODO use Twisted/DCProtocol
+        pass
             
                 
 
@@ -149,88 +87,12 @@ class StateRunning(State):
         self.cellcounts=self.board.countcells()
     
     def run(self):
-        self.server.broadcast("BOARD:"+self.board.encode())
-        while True:
-            for player in [p for p in self.server.players if not isinstance(p, NullPlayer)]:
-                msginc=""
-                receiving=True
-                while receiving: # Receive as much data as possible form the player
-                    try:
-                        msginc+=player.recv().strip("\n")
-                    except SocketError: receiving=False # Exit loop on EoF
-                self.msgqueue[player.name]+=msginc # Add received data to player's message queue
-                msgs=self.msgqueue[player.name].split(';')
-                self.msgqueue[player.name]=msgs[-1] # message piece after last ; is what's left over and is stored for next iteration
-                msgs=msgs[:-1]
-                for cmd in msgs:
-                    self.process(player, cmd.strip('\n'))
-                if self.ready==self._allplayers:
-                    self.tick()
-                if self.gameended():
-                    self.server.setstate(StatePostgame)
+        # TODO use Twisted
+        pass
     
     def process(self, player, cmd):
-        if player in self.ready:
-            player.send("NAK:locked-in")
-            return
-        if cmd.startswith("untarget:"):
-            try:
-                xf, yf, xt, yt=(int(x) for x in cmd.split(":",4)[1:])
-            except ValueError:
-                player.send("NAK:no-untarget:bad-coord-format")
-                return
-            try:
-                fcell=self.board.cells[xf,yf]
-                tcell=self.board.cells[xt,yt]
-            except KeyError:
-                player.send("NAK:no-untarget:coords-out-of-bounds")
-                return
-            if fcell.owner!=player:
-                player.send("NAK:cell-not-owned")
-                return
-            try:
-                fcell.targets.remove(tcell)
-                player.send("ACK:cell-untargeted:%i,%i:%i,%i" % (xf,yf,xt,yt))
-            except ValueError:
-                player.send("ACK:already-done")
-        elif cmd.startswith("target:"):
-            try:
-                xf, yf, xt, yt=(int(x) for x in cmd.split(":",4)[1:])
-            except ValueError:
-                player.send("NAK:no-target:bad-coord-format")
-                return
-            try:
-                fcell=self.board.cells[xf,yf]
-                tcell=self.board.cells[xt,yt]
-            except KeyError:
-                player.send("NAK:no-target:coords-out-of-bounds")
-                return
-            if fcell.owner!=player:
-                player.send("NAK:cell-not-owned")
-                return
-            if tcell in fcell.targets:
-                player.send("ACK:already-done")
-                return
-            if len(fcell.targets) > fcell.maxTargets:
-                player.send("NAK:too-many-targets")
-                return
-            if (xf-xt)*(xf-xt)+(yf-yt)*(yf-yt) > fcell.rangeSq:
-                player.send("NAK:out-of-range")
-                return
-            fcell.targets.append(tcell)
-        elif cmd=="forfeit":
-            if self.cellcounts[player.name]<=0:
-                player.send("NAK:game-over")
-                return
-            self.cellcounts[player.name]=-1
-            for cell in self.board.cells.values():
-                if cell.owner==player:
-                    cell.owner=self.server.nullowner
-                    cell.targets=[]
-                    cell.energy=max(cell.energy, RA_MAX_ENERGY)
-            player.send("ACK:forfeited")
-        elif cmd=="ready":
-            self.ready.add(player)
+        # TODO use Twisted
+        pass
     
     def gameended(self):
         scores=self.board.countcells()
@@ -239,13 +101,14 @@ class StateRunning(State):
             if cc>0:
                 ended=False
                 self.cellcounts[pn]=scores[pn]
-                if scores[pn]==0: self.server.playerbyname(pn).send("INFO:lost-all-cells")
+                if scores[pn]==0: pass # TODO use Twisted
         return ended
     
     def tick(self):
         self.board.tick()
         self.ready={self.server.nullplayer}
-        self.server.broadcast("BOARD:"+self.board.encode())
+        # TODO use Twisted
+        # self.server.broadcast("BOARD:"+self.board.encode())
 
 class StatePostgame(State):
     """Postgame state. This state sends score & victory information to all players and lets them chat."""

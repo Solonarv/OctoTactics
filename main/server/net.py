@@ -1,38 +1,23 @@
 '''
-Created on 04.03.2014
+Created on Jun 1, 2014
 
-@author: Solonarv
+@author: solonarv
 '''
-
-
 from model.player import Player
 
-from network.netqueue import NetQueue
-
-
-
 class ServerPlayer(Player):
-    def __init__(self, msg, conn, addr, server):
-        name, texpack=msg.split(':',1) # Hello message expected in Name:texpack format
-        Player.__init__(self, name, texpack)
-        self.server=server
+    
+    def __init__(self, conn, hsh):
+        Player.__init__(self, "", "")
         self.conn=conn
-        self.addr=addr
-        if not isinstance(self, NullPlayer):
-            self.connw=NetQueue(conn)
     
-    def send(self, msg):
-        self.connw.send(msg+";\n")
-        print "[NET] Sent to %s: %s" % (self.name, msg)
-    
-    def recv(self):
-        rc=self.connw.recv()
-        if rc: print "[NET] Recv from %s: %s" % (self.name, rc)
-        return rc
+    def sendLine(self,line):
+        return self.conn.sendLine(line)
 
 class NullPlayer(ServerPlayer):
-    def __init__(self, server):
-        ServerPlayer.__init__(self,"RA:<>", None, None, server)
     
-    def send(self, msg): pass
-    def recv(self, buf=4096): return ""
+    def __init__(self, server):
+        ServerPlayer.__init__(self, None, -1)
+    
+    def sendLine(self, line):
+        pass
