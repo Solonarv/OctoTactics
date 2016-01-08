@@ -62,3 +62,13 @@ instance Enum Direction where
 
 opposite :: Direction -> Direction
 opposite = succ . succ . succ . succ
+
+move :: Num a => Direction -> (a, a) -> (a, a)
+move North     (x, y) = (x    , y - 1)
+move NorthEast (x, y) = (x + 1, y - 1)
+move East      (x, y) = (x + 1, y    )
+move SouthEast (x, y) = (x + 1, y + 1)
+move South     (x, y) = (x    , y + 1)
+move SouthWest (x, y) = (x - 1, y + 1)
+move West      (x, y) = (x - 1, y    )
+move NorthWest (x, y) = (x - 1, y - 1)
