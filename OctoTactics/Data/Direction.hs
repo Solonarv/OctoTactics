@@ -1,9 +1,15 @@
+{-# LANGUAGE
+    NoImplicitPrelude
+    #-}
+
 module OctoTactics.Data.Direction (
     Direction(..),
     opposite
     ) where
 
 import Data.List.Split (chunksOf)
+
+import OctoTactics.Util.ImprovedPrelude
 
 data Direction = North
                | NorthEast
@@ -54,9 +60,7 @@ instance Enum Direction where
     fromEnum NorthWest = 7
     
     enumFrom = iterate succ
-    enumFromThen s t = iterate (succ `fpow` ((fromEnum t - fromEnum s) `mod` 8)) s
-        where fpow 0 _ = id
-              fpow n f = f . fpow (n-1) f
+    enumFromThen s t = iterate (succ $^ ((fromEnum t - fromEnum s) `mod` 8)) s
     enumFromTo s e = take ((fromEnum e - fromEnum s) `mod` 8) $ enumFrom s
     enumFromThenTo s t e = map head $ chunksOf ((fromEnum t - fromEnum s) `mod` 8) $ enumFromTo s e
 
