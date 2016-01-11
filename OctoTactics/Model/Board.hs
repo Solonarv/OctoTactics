@@ -6,7 +6,7 @@ module OctoTactics.Model.Board where
 
 import Control.Arrow
 
-import Data.Array (Array, (!))
+import Data.Array (Array, (!), (//))
 import qualified Data.Array as Array
 
 import Data.Set (Set)
@@ -27,7 +27,8 @@ tick :: Board Cell
      -> Board Cell
 tick = addEnergy . drainCells . generateEnergy
 
-generateEnergy :: Board Cell -> Board Cell
+generateEnergy :: Board Cell
+               -> Board Cell
 generateEnergy = fmap $ second $ \c -> c { cEnergy = cEnergy c + regenRate (cType c) }
 
 drainCells :: Board Cell
@@ -46,3 +47,9 @@ addEnergy :: Board (Cell, Set (Position, Double))
           -> Board Cell
 addEnergy b = b <$$> \(pos, (c, _)) -> let deltaE = sum $  b <$$> snd <$>> \(c', ts) -> ts <? ((== pos) . fst) <$$> snd
                                        in (pos, c { cEnergy = cEnergy c + deltaE })
+
+cellAt :: Position -> Board a -> a
+cellAt p = snd . (! p)
+
+setCell :: Position -> a -> Board a -> Board a
+setCell pos c bd = bd // [(pos, (pos, c))]
