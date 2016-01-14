@@ -18,7 +18,7 @@ import qualified Data.Array as Array
 
 import OctoTactics.Data.Direction
 import OctoTactics.Model.Player (Player)
-import OctoTactics.Render.Renderer (Renderer(DummyRenderer))
+import OctoTactics.Render.CellRenderer (CellRenderer(DummyRenderer))
 import OctoTactics.Util.ImprovedPrelude
 import OctoTactics.Util.Conversion (intToDouble)
 
@@ -37,18 +37,18 @@ data CellType = CellType { legalDirections   :: !(Set Direction)
                          , regenRate         :: !Double
                          , transferRates     :: !(Array Int Double)
                          , receptionModifier :: !Double
-                         , renderer          :: !Renderer
+                         , renderer          :: !CellRenderer
                          , rangeSquared      :: !Double
                          }
                 deriving (Eq, Show)
 
-octagon = CellType { legalDirections   = Set.fromList [North .. NorthWest]
+octogon = CellType { legalDirections   = Set.fromList [North .. NorthWest]
                    , maxTargets        = 3
                    , startingEnergy    = 5
                    , regenRate         = 3.75
                    , transferRates     = Array.listArray (0, 3) [0, 0.216, 0.146, 0.122]
                    , receptionModifier = 1
-                   , renderer          = DummyRenderer
+                   , renderer          = renderOctogon
                    , rangeSquared      = 1.1
                    }
 
@@ -58,7 +58,7 @@ square  = CellType { legalDirections   = Set.fromList [North, East, South, West]
                    , regenRate         = 3
                    , transferRates     = Array.listArray (0, 1) [0, 0.35]
                    , receptionModifier = 0.8
-                   , renderer          = DummyRenderer
+                   , renderer          = renderSquare
                    , rangeSquared      = 2.2
                    }
 
