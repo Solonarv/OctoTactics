@@ -39,8 +39,8 @@ infixl 4 <?
 (<?) = flip filter . F.toList
 
 infixl 4 <$>>
-(<$>>) :: (F.Foldable t, F.Foldable u) => t a -> (a -> u b) -> [b]
-xs <$>> f = concatMap (F.toList . f) xs
+($>>=) :: (F.Foldable t, F.Foldable u) => t a -> (a -> u b) -> [b]
+xs $>>= f = concatMap (F.toList . f) xs
 
 both :: (a -> b) -> (a, a) -> (b, b)
 both f (a, b) = (f a, f b)

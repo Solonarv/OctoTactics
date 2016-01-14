@@ -45,7 +45,7 @@ drainCells b = b <$$> \(pos, c) -> let targets    = cConnections c
 
 addEnergy :: Board (Cell, Set (Position, Double))
           -> Board Cell
-addEnergy b = b <$$> \(pos, (c, _)) -> let deltaE = sum $  b <$$> snd <$>> \(c', ts) -> ts <? ((== pos) . fst) <$$> snd
+addEnergy b = b <$$> \(pos, (c, _)) -> let deltaE = sum $  b <$$> snd $>>= \(c', ts) -> ts <? ((== pos) . fst) <$$> snd
                                        in (pos, c { cEnergy = cEnergy c + deltaE })
 
 cellAt :: Position -> Board a -> a
