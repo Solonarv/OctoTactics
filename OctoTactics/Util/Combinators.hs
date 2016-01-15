@@ -11,6 +11,7 @@ import Prelude hiding ((<$>))
 import OctoTactics.Util.Class
 
 import Data.Foldable (Foldable, toList)
+import Data.Bifunctor
 
 const2 :: a -> b -> c -> a
 const2 = const . const
@@ -19,7 +20,7 @@ on :: (b -> b -> c) -> (a -> b) -> (a -> a -> c)
 op `on` f = curry (uncurry op . both f)
 
 both :: (a -> b) -> (a, a) -> (b, b)
-both = twice bifmap
+both = twice bimap
 
 both2 :: (a -> b -> c) -> (a, a) -> (b, b) -> (c, c)
 both2 f (a, b) (c, d) = (f a c, f b d)
@@ -49,11 +50,11 @@ xs $>>= f = concatMap (toList . f) xs
 
 infixr 6 \/
 (\/) :: (a -> c) -> (b -> c) -> Either a b -> c
-l \/ r = dedup . bifmap l r
+l \/ r = dedup . bimap l r
 
 infixr 7 /\
 (/\) :: (a -> b) -> (a -> b) -> a -> (b, b)
-l /\ r = bifmap l r . dup
+l /\ r = bimap l r . dup
 
 dedup :: Either a a -> a
 dedup (Left x)  = x
@@ -67,7 +68,7 @@ twice f x = f x x
 
 infixl 4 #$>, #$$>
 (#$>) :: Bifunctor f => (a -> c, b -> d) -> f a b -> f c d
-(#$>) = uncurry bifmap
+(#$>) = uncurry bimap
 
 (#$$>) :: Bifunctor f => f a b -> (a -> c, b -> d) -> f c d
-(#$$>) = flip $ uncurry bifmap
+(#$$>) = flip $ uncurry bimap

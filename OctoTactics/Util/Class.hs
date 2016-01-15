@@ -17,24 +17,6 @@ class Functor' f a b where
 instance Functor f => Functor' f a b where
     fmap' = fmap
 
-class Bifunctor f where
-    bifmap :: (a -> c) -> (b -> d) -> f a b -> f c d
-    lmap :: (a -> c) -> f a b -> f c b
-    rmap :: (b -> c) -> f a b -> f a c
-    
-    lmap l = bifmap l id
-    rmap r = bifmap id r
-    bifmap l r = lmap l . rmap r
-    
-    {-# MINIMAL bifmap | lmap, rmap #-}
-
-instance Bifunctor Either where
-    bifmap l _ (Left x)  = Left  (l x)
-    bifmap _ r (Right y) = Right (r y)
-
-instance Bifunctor (,) where
-    bifmap l r (x, y) = (l x, r y)
-
 class Swap f where
     swap :: f a b -> f b a
 
