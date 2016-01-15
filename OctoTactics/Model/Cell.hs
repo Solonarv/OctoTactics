@@ -18,7 +18,7 @@ import qualified Data.Array as Array
 
 import OctoTactics.Data.Direction
 import OctoTactics.Model.Player (Player)
-import OctoTactics.Render.CellRenderer (CellRenderer(DummyRenderer))
+import OctoTactics.Render.CellRenderer (CellRenderer, renderOctogon, renderSquare)
 import OctoTactics.Util.ImprovedPrelude
 import OctoTactics.Util.Conversion (intToDouble)
 
@@ -32,6 +32,7 @@ data Cell = Cell { cPosition    :: !(Int, Int)
 
 -- | Stores information about cell types.
 data CellType = CellType { legalDirections   :: !(Set Direction)
+                         , name              :: !String
                          , maxTargets        :: !Int
                          , startingEnergy    :: !Double
                          , regenRate         :: !Double
@@ -40,9 +41,12 @@ data CellType = CellType { legalDirections   :: !(Set Direction)
                          , renderer          :: !CellRenderer
                          , rangeSquared      :: !Double
                          }
-                deriving (Eq, Show)
+
+instance Eq CellType where
+    (==) = (==) `on` name
 
 octogon = CellType { legalDirections   = Set.fromList [North .. NorthWest]
+                   , name              = "octogon"
                    , maxTargets        = 3
                    , startingEnergy    = 5
                    , regenRate         = 3.75
@@ -53,6 +57,7 @@ octogon = CellType { legalDirections   = Set.fromList [North .. NorthWest]
                    }
 
 square  = CellType { legalDirections   = Set.fromList [North, East, South, West]
+                   , name              = "square"
                    , maxTargets        = 1
                    , startingEnergy    = 5
                    , regenRate         = 3

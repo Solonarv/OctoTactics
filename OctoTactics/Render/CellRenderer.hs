@@ -7,22 +7,22 @@ module OctoTactics.Render.CellRenderer where
 
 import OctoTactics.Util.ImprovedPrelude
 
-import OctoTactics.Model.Cell
-import qualified OctoTactics.Model.Player as Player (color)
+import qualified OctoTactics.Model.Player as Player
+import OctoTactics.Model.Player (Player)
 
-import qualified Graphics.Gloss as Gloss
+import Graphics.Gloss (Picture(..), rectanglePath)
 
-type CellRenderer = Cell -> Picture
+type CellRenderer = Maybe Player -> Double -> Picture
 
 renderSquare :: CellRenderer
-renderSquare = CellRenderer $ const $ Polygon $ rectanglePath 20 20
+renderSquare = const2 $ Polygon $ rectanglePath 20 20
 
 renderOctogon :: CellRenderer
-renderOctogon = CellRenderer $ const $ Polygon [ (20, 1)
-                                               , (50, 1)
-                                               , (69, 20)
-                                               , (69, 50)
-                                               , (50, 69)
-                                               , (20, 69)
-                                               , (1, 50)
-                                               , (1, 20)]
+renderOctogon = const2 $ Polygon [ (20, 1)
+                                     , (50, 1)
+                                     , (69, 20)
+                                     , (69, 50)
+                                     , (50, 69)
+                                     , (20, 69)
+                                     , (1, 50)
+                                     , (1, 20)]
