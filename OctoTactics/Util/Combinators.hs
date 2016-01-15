@@ -65,9 +65,9 @@ dup x = (x, x)
 twice :: (a -> a -> b) -> a -> b
 twice f x = f x x
 
-infixl 4 <#$>, <#$$>
-(<#$>) :: Bifunctor f => (a -> c, b -> d) -> f a b -> f c d
-(<#$>) = uncurry bifmap
+infixl 4 #$>, #$$>
+(#$>) :: Bifunctor f => (a -> c, b -> d) -> f a b -> f c d
+(#$>) = uncurry bifmap
 
-(<#$$>) :: Bifunctor f => f a b -> (a -> c, b -> d) -> f c d
-(<#$$>) = flip $ uncurry bifmap
+(#$$>) :: Bifunctor f => f a b -> (a -> c, b -> d) -> f c d
+(#$$>) = flip $ uncurry bifmap
