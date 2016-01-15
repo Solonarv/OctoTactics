@@ -72,3 +72,6 @@ infixl 4 #$>, #$$>
 
 (#$$>) :: Bifunctor f => f a b -> (a -> c, b -> d) -> f c d
 (#$$>) = flip $ uncurry bimap
+
+keep :: (a -> b) -> a -> (a, b)
+keep f = second f . dup
