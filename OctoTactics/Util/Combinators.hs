@@ -25,10 +25,6 @@ both = twice bimap
 both2 :: (a -> b -> c) -> (a, a) -> (b, b) -> (c, c)
 both2 f (a, b) (c, d) = (f a c, f b d)
 
-infixl 4 <$$>
-(<$$>) :: Functor' f a b => f a -> (a -> b) -> f b
-(<$$>) = flip fmap'
-
 infixl 4 <$>
 (<$>) :: Functor' f a b => (a -> b) -> f a -> f b
 (<$>) = fmap'
